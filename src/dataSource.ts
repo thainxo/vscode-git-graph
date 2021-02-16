@@ -348,7 +348,7 @@ export class DataSource extends Disposable {
 			this.getDiffNameStatus(repo, fromCommit, commitHash),
 			this.getDiffNumStat(repo, fromCommit, commitHash)
 		]).then((results) => {
-			results[0].fileChanges = generateFileChanges(results[1], results[2], null);
+			results[0].fileChanges = generateFileChanges(results[1], results[2], null, null);
 			return { commitDetails: results[0], error: null };
 		}).catch((errorMessage) => {
 			return { commitDetails: null, error: errorMessage };
@@ -370,9 +370,9 @@ export class DataSource extends Disposable {
 			stash.untrackedFilesHash !== null ? this.getDiffNameStatus(repo, stash.untrackedFilesHash, stash.untrackedFilesHash) : Promise.resolve([]),
 			stash.untrackedFilesHash !== null ? this.getDiffNumStat(repo, stash.untrackedFilesHash, stash.untrackedFilesHash) : Promise.resolve([])
 		]).then((results) => {
-			results[0].fileChanges = generateFileChanges(results[1], results[2], null);
+			results[0].fileChanges = generateFileChanges(results[1], results[2], null, null);
 			if (stash.untrackedFilesHash !== null) {
-				generateFileChanges(results[3], results[4], null).forEach((fileChange) => {
+				generateFileChanges(results[3], results[4], null, null).forEach((fileChange) => {
 					if (fileChange.type === GitFileStatus.Added) {
 						fileChange.type = GitFileStatus.Untracked;
 						results[0].fileChanges.push(fileChange);
@@ -394,14 +394,15 @@ export class DataSource extends Disposable {
 		return Promise.all([
 			this.getDiffNameStatus(repo, 'HEAD', ''),
 			this.getDiffNumStat(repo, 'HEAD', ''),
-			this.getStatus(repo)
+			this.getStatus(repo),
+			this.getStagedFile(repo)
 		]).then((results) => {
 			return {
 				commitDetails: {
 					hash: UNCOMMITTED, parents: [],
 					author: '', authorEmail: '', authorDate: 0,
 					committer: '', committerEmail: '', committerDate: 0, signature: null,
-					body: '', fileChanges: generateFileChanges(results[0], results[1], results[2])
+					body: '', fileChanges: generateFileChanges(results[0], results[1], results[2], results[3])
 				},
 				error: null
 			};
@@ -418,13 +419,14 @@ export class DataSource extends Disposable {
 	 * @returns The comparison details.
 	 */
 	public getCommitComparison(repo: string, fromHash: string, toHash: string): Promise<GitCommitComparisonData> {
-		return Promise.all<DiffNameStatusRecord[], DiffNumStatRecord[], GitStatusFiles | null>([
+		return Promise.all<DiffNameStatusRecord[], DiffNumStatRecord[], GitStatusFiles | null, GitStagedFiles | null>([
 			this.getDiffNameStatus(repo, fromHash, toHash === UNCOMMITTED ? '' : toHash),
 			this.getDiffNumStat(repo, fromHash, toHash === UNCOMMITTED ? '' : toHash),
-			toHash === UNCOMMITTED ? this.getStatus(repo) : Promise.resolve(null)
+			toHash === UNCOMMITTED ? this.getStatus(repo) : Promise.resolve(null),
+			toHash === UNCOMMITTED ? this.getStagedFile(repo) : Promise.resolve(null)
 		]).then((results) => {
 			return {
-				fileChanges: generateFileChanges(results[0], results[1], results[2]),
+				fileChanges: generateFileChanges(results[0], results[1], results[2], results[3]),
 				error: null
 			};
 		}).catch((errorMessage) => {
@@ -1272,6 +1274,30 @@ export class DataSource extends Disposable {
 	}
 
 
+	/**
+	 * Stage or Unstage uncommitted file
+	 * @param repo The path of the repository.
+	 * @param filePath The path of the file relative to the repositories root.
+	 * @param stage 
+	 * @returns The ErrorInfo from opening the terminal.
+	 */
+	public stageFile(repo: string, filePath: string, stage: boolean | null) {
+		let args = [];
+		if (stage === true) {
+			args.push('reset');
+			args.push('-q');
+			args.push('HEAD');
+		} else {
+			args.push('add');
+			args.push('-A');
+		}
+		
+		args.push('--');
+		args.push(filePath);
+
+		return this.runGitCommand(args, repo);
+	}
+
 	/* Private Data Providers */
 
 	/**
@@ -1601,6 +1627,7 @@ export class DataSource extends Disposable {
 				path = output[i].substring(3);
 				c1 = output[i].substring(0, 1);
 				c2 = output[i].substring(1, 2);
+
 				if (c1 === 'D' || c2 === 'D') status.deleted.push(path);
 				else if (c1 === '?' || c2 === '?') status.untracked.push(path);
 
@@ -1615,6 +1642,22 @@ export class DataSource extends Disposable {
 		});
 	}
 
+	/**
+	 * Get the staged files.
+	 * @param repo The path of the repository.
+	 * @returns The untracked and deleted files.
+	 */
+	private getStagedFile(repo: string) {
+		return this.spawnGit(['diff-index', '--cached', '--name-only', '-z', 'HEAD'], repo, (stdout) => {
+			let output = stdout.split('\0'), i = 0;
+			let stagedFiles: GitStagedFiles = { files: [] };
+			while (i < output.length && output[i] !== '') {
+				stagedFiles.files.push(output[i]);
+				i++;
+			}
+			return stagedFiles;
+		});
+	}
 
 	/* Private Utils */
 
@@ -1724,12 +1767,12 @@ export class DataSource extends Disposable {
  * @param status The deleted and untracked files.
  * @returns An array of file changes.
  */
-function generateFileChanges(nameStatusRecords: DiffNameStatusRecord[], numStatRecords: DiffNumStatRecord[], status: GitStatusFiles | null) {
+function generateFileChanges(nameStatusRecords: DiffNameStatusRecord[], numStatRecords: DiffNumStatRecord[], status: GitStatusFiles | null, stage: GitStagedFiles | null) {
 	let fileChanges: Writeable<GitFileChange>[] = [], fileLookup: { [file: string]: number } = {}, i = 0;
 
 	for (i = 0; i < nameStatusRecords.length; i++) {
 		fileLookup[nameStatusRecords[i].newFilePath] = fileChanges.length;
-		fileChanges.push({ oldFilePath: nameStatusRecords[i].oldFilePath, newFilePath: nameStatusRecords[i].newFilePath, type: nameStatusRecords[i].type, additions: null, deletions: null });
+		fileChanges.push({ oldFilePath: nameStatusRecords[i].oldFilePath, newFilePath: nameStatusRecords[i].newFilePath, type: nameStatusRecords[i].type, additions: null, deletions: null, staged: false });
 	}
 
 	if (status !== null) {
@@ -1739,12 +1782,12 @@ function generateFileChanges(nameStatusRecords: DiffNameStatusRecord[], numStatR
 			if (typeof fileLookup[filePath] === 'number') {
 				fileChanges[fileLookup[filePath]].type = GitFileStatus.Deleted;
 			} else {
-				fileChanges.push({ oldFilePath: filePath, newFilePath: filePath, type: GitFileStatus.Deleted, additions: null, deletions: null });
+				fileChanges.push({ oldFilePath: filePath, newFilePath: filePath, type: GitFileStatus.Deleted, additions: null, deletions: null, staged: false });
 			}
 		}
 		for (i = 0; i < status.untracked.length; i++) {
 			filePath = getPathFromStr(status.untracked[i]);
-			fileChanges.push({ oldFilePath: filePath, newFilePath: filePath, type: GitFileStatus.Untracked, additions: null, deletions: null });
+			fileChanges.push({ oldFilePath: filePath, newFilePath: filePath, type: GitFileStatus.Untracked, additions: null, deletions: null, staged: false });
 		}
 	}
 
@@ -1755,6 +1798,16 @@ function generateFileChanges(nameStatusRecords: DiffNameStatusRecord[], numStatR
 		}
 	}
 
+	if (stage !== null) {
+		let filePath;
+		for (i = 0; i < stage.files.length; i++) {
+			filePath = getPathFromStr(stage.files[i]);
+			if (typeof fileLookup[filePath] === 'number') {
+				fileChanges[fileLookup[filePath]].staged = true;
+			}
+		}
+	
+	}
 	return fileChanges;
 }
 
@@ -1885,6 +1938,10 @@ interface GitRepoConfigData {
 interface GitStatusFiles {
 	deleted: string[];
 	untracked: string[];
+}
+
+interface GitStagedFiles {
+	files: string[];
 }
 
 interface GitTagDetailsData {

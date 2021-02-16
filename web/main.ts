@@ -1454,6 +1454,20 @@ class GitGraphView {
 		let visibility = this.config.contextMenuActionsVisibility.uncommittedChanges;
 		return [[
 			{
+				title: 'Commit staged files' + ELLIPSIS,
+				visible: visibility.stash,
+				onClick: () => {
+					dialog.showForm('Are you sure you want to commit the <b>staged files</b>?', [
+						{ type: DialogInputType.Text, name: 'Message', default: '', placeholder: unescapeHtml('Message' + ELLIPSIS) }
+					], 'Yes, commit', (values) => {
+						dialog.showError('Unable to commit', 'Current ' + (<string>values[0]) + ' is not supported', null, null);
+						// runAction({ command: 'commit', repo: this.currentRepo, message: <string>values[0], includeUntracked: <boolean>values[1] }, 'Stashing uncommitted changes');
+					}, target);
+				}
+			}
+		],
+		[
+			{
 				title: 'Stash uncommitted changes' + ELLIPSIS,
 				visible: visibility.stash,
 				onClick: () => {
@@ -2849,6 +2863,11 @@ class GitGraphView {
 			sendMessage({ command: 'openFile', repo: this.currentRepo, filePath: file.newFilePath });
 		};
 
+		const triggerStageFile = (file: GG.GitFileChange, fileElem: HTMLElement) => {
+			this.cdvFileViewed(file.newFilePath, fileElem);
+			sendMessage({ command: 'stageFile', repo: this.currentRepo, filePath: file.newFilePath, stage: file.staged });
+		};
+
 		addListenerToClass('fileTreeFolder', 'click', (e) => {
 			let expandedCommit = this.expandedCommit;
 			if (expandedCommit === null || expandedCommit.fileTree === null || e.target === null) return;
@@ -2939,6 +2958,11 @@ class GitGraphView {
 						title: 'Open File',
 						visible: file.type !== GG.GitFileStatus.Deleted,
 						onClick: () => triggerOpenFile(file, fileElem)
+					},
+					{
+						title: file.staged === true ? 'Unstage' : 'State',
+						visible: isUncommitted,
+						onClick: () => triggerStageFile(file, fileElem)
 					}
 				],
 				[
@@ -3220,6 +3244,9 @@ window.addEventListener('load', () => {
 			case 'setWorkspaceViewState':
 				finishOrDisplayError(msg.error, 'Unable to save the Workspace View State');
 				break;
+			case 'stageFile':
+				refreshOrDisplayError(msg.error, 'Unable to stage file');
+				break;
 			case 'startCodeReview':
 				if (msg.error === null) {
 					gitGraph.startCodeReview(msg.commitHash, msg.compareWithHash, msg.codeReview);
@@ -3373,7 +3400,7 @@ function generateFileTreeLeafHtml(name: string, leaf: FileTreeLeaf, gitFiles: Re
 		const textFile = fileTreeFile.additions !== null && fileTreeFile.deletions !== null;
 		const diffPossible = fileTreeFile.type === GG.GitFileStatus.Untracked || textFile;
 		const changeTypeMessage = GIT_FILE_CHANGE_TYPES[fileTreeFile.type] + (fileTreeFile.type === GG.GitFileStatus.Renamed ? ' (' + escapeHtml(fileTreeFile.oldFilePath) + ' → ' + escapeHtml(fileTreeFile.newFilePath) + ')' : '');
-		return '<li data-pathseg="' + encodedName + '"><span class="fileTreeFileRecord' + (leaf.index === fileContextMenuOpen ? ' ' + CLASS_CONTEXT_MENU_ACTIVE : '') + '" data-index="' + leaf.index + '"><span class="fileTreeFile' + (diffPossible ? ' gitDiffPossible' : '') + (leaf.reviewed ? '' : ' ' + CLASS_PENDING_REVIEW) + '" title="' + (diffPossible ? 'Click to View Diff' : 'Unable to View Diff' + (fileTreeFile.type !== GG.GitFileStatus.Deleted ? ' (this is a binary file)' : '')) + ' • ' + changeTypeMessage + '"><span class="fileTreeFileIcon">' + SVG_ICONS.file + '</span><span class="gitFileName ' + fileTreeFile.type + '">' + escapedName + '</span></span>' +
+		return '<li data-pathseg="' + encodedName + '"><span class="fileTreeFileRecord' + (leaf.index === fileContextMenuOpen ? ' ' + CLASS_CONTEXT_MENU_ACTIVE : '') + '" data-index="' + leaf.index + '"><span class="fileTreeFile' + (diffPossible ? ' gitDiffPossible' : '') + (leaf.reviewed ? '' : ' ' + CLASS_PENDING_REVIEW) + '" title="' + (diffPossible ? 'Click to View Diff' : 'Unable to View Diff' + (fileTreeFile.type !== GG.GitFileStatus.Deleted ? ' (this is a binary file)' : '')) + ' • ' + changeTypeMessage + '"><span class="fileTreeFileIcon" style="fill:#AB7C94;">' + (fileTreeFile.staged === true ? SVG_ICONS.fileChecked : SVG_ICONS.file) + '</span><span class="gitFileName ' + fileTreeFile.type + '">' + escapedName + '</span></span>' +
 			(initialState.config.enhancedAccessibility ? '<span class="fileTreeFileType" title="' + changeTypeMessage + '">' + fileTreeFile.type + '</span>' : '') +
 			(fileTreeFile.type !== GG.GitFileStatus.Added && fileTreeFile.type !== GG.GitFileStatus.Untracked && fileTreeFile.type !== GG.GitFileStatus.Deleted && textFile ? '<span class="fileTreeFileAddDel">(<span class="fileTreeFileAdd" title="' + fileTreeFile.additions + ' addition' + (fileTreeFile.additions !== 1 ? 's' : '') + '">+' + fileTreeFile.additions + '</span>|<span class="fileTreeFileDel" title="' + fileTreeFile.deletions + ' deletion' + (fileTreeFile.deletions !== 1 ? 's' : '') + '">-' + fileTreeFile.deletions + '</span>)</span>' : '') +
 			(fileTreeFile.newFilePath === lastViewedFile ? '<span id="cdvLastFileViewed" title="Last File Viewed">' + SVG_ICONS.eyeOpen + '</span>' : '') +
@@ -3594,7 +3621,7 @@ function haveFilesChanged(oldFiles: ReadonlyArray<GG.GitFileChange> | null, newF
 	} else if (oldFiles === null && newFiles === null) {
 		return false;
 	} else {
-		return !arraysEqual(oldFiles!, newFiles!, (a, b) => a.additions === b.additions && a.deletions === b.deletions && a.newFilePath === b.newFilePath && a.oldFilePath === b.oldFilePath && a.type === b.type);
+		return !arraysEqual(oldFiles!, newFiles!, (a, b) => a.additions === b.additions && a.deletions === b.deletions && a.newFilePath === b.newFilePath && a.oldFilePath === b.oldFilePath && a.type === b.type && a.staged === b.staged);
 	}
 }
 

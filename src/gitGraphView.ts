@@ -560,6 +560,12 @@ export class GitGraphView extends Disposable {
 			case 'showErrorMessage':
 				showErrorMessage(msg.message);
 				break;
+			case 'stageFile':
+				this.sendMessage({
+					command: 'stageFile',
+					error: await this.dataSource.stageFile(msg.repo, msg.filePath, msg.stage)
+				});
+				break;
 			case 'startCodeReview':
 				this.sendMessage({
 					command: 'startCodeReview',

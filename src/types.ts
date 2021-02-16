@@ -71,6 +71,7 @@ export interface GitFileChange {
 	readonly type: GitFileStatus;
 	readonly additions: number | null;
 	readonly deletions: number | null;
+	readonly staged: boolean | null;
 }
 
 export const enum GitFileStatus {
@@ -1121,6 +1122,15 @@ export interface RequestShowErrorDialog extends BaseMessage {
 	readonly message: string;
 }
 
+export interface RequestStageFile extends RepoRequest {
+    readonly command: 'stageFile';
+	readonly filePath: string;
+    readonly stage: boolean | null;
+}
+export interface ResponseStageFile extends ResponseWithErrorInfo {
+    readonly command: 'stageFile';
+}
+
 export interface RequestStartCodeReview extends RepoRequest {
 	readonly command: 'startCodeReview';
 	readonly id: string;
@@ -1236,6 +1246,7 @@ export type RequestMessage =
 	| RequestSetRepoState
 	| RequestSetWorkspaceViewState
 	| RequestShowErrorDialog
+	| RequestStageFile
 	| RequestStartCodeReview
 	| RequestTagDetails
 	| RequestViewDiff
@@ -1294,6 +1305,7 @@ export type ResponseMessage =
 	| ResponseRevertCommit
 	| ResponseSetGlobalViewState
 	| ResponseSetWorkspaceViewState
+	| ResponseStageFile
 	| ResponseStartCodeReview
 	| ResponseTagDetails
 	| ResponseViewDiff
