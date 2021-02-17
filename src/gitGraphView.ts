@@ -247,6 +247,12 @@ export class GitGraphView extends Disposable {
 					refresh: msg.refresh
 				});
 				break;
+			case 'commitStagedFiles':
+				this.sendMessage({
+					command: 'commitStagedFiles',
+					error: await this.dataSource.commitStagedFiles(msg.repo, msg.message)
+				});
+				break;
 			case 'compareCommits':
 				this.sendMessage({
 					command: 'compareCommits',

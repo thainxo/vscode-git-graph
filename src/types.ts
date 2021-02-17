@@ -662,6 +662,14 @@ export interface ResponseCommitDetails extends ResponseWithErrorInfo {
 	readonly refresh: boolean;
 }
 
+export interface RequestCommitStagedFiles extends RepoRequest {
+	readonly command: 'commitStagedFiles';
+	readonly message: string;
+}
+export interface ResponseCommitStagedFiles extends ResponseWithErrorInfo {
+	readonly command: 'commitStagedFiles';
+}
+
 export interface RequestCompareCommits extends RepoRequest {
 	readonly command: 'compareCommits';
 	readonly commitHash: string;
@@ -1199,8 +1207,9 @@ export type RequestMessage =
 	| RequestCheckoutCommit
 	| RequestCherrypickCommit
 	| RequestCleanUntrackedFiles
-	| RequestCodeReviewFileReviewed
+	| RequestCodeReviewFileReviewed	
 	| RequestCommitDetails
+	| RequestCommitStagedFiles
 	| RequestCompareCommits
 	| RequestCopyFilePath
 	| RequestCopyToClipboard
@@ -1264,6 +1273,7 @@ export type ResponseMessage =
 	| ResponseCleanUntrackedFiles
 	| ResponseCompareCommits
 	| ResponseCommitDetails
+	| ResponseCommitStagedFiles
 	| ResponseCopyFilePath
 	| ResponseCopyToClipboard
 	| ResponseCreateArchive

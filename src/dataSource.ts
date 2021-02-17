@@ -1367,6 +1367,23 @@ export class DataSource extends Disposable {
 	}
 
 	/**
+	 * Committed staged files
+	 * @param repo The path of the repository.
+	 * @param message The message of the committion.
+	 * @returns The ErrorInfo from opening the terminal.
+	 */
+	public commitStagedFiles(repo: string, message: string) {
+		let args = [];
+		// args.push('-c');
+		// args.push('user.useConfigOnly=true');
+		args.push('commit');
+		args.push('--quiet');
+		args.push('-m');
+		args.push(message);
+		return this.runGitCommand(args, repo);
+	}
+
+	/**
 	 * Get the configuration list of a repository.
 	 * @param repo The path of the repository.
 	 * @param location The location of the configuration to be listed.

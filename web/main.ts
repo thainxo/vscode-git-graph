@@ -1458,10 +1458,9 @@ class GitGraphView {
 				visible: visibility.stash,
 				onClick: () => {
 					dialog.showForm('Are you sure you want to commit the <b>staged files</b>?', [
-						{ type: DialogInputType.Text, name: 'Message', default: '', placeholder: unescapeHtml('Message' + ELLIPSIS) }
+						{ type: DialogInputType.TextArea, name: 'Message', default: '' }
 					], 'Yes, commit', (values) => {
-						dialog.showError('Unable to commit', 'Current ' + (<string>values[0]) + ' is not supported', null, null);
-						// runAction({ command: 'commit', repo: this.currentRepo, message: <string>values[0], includeUntracked: <boolean>values[1] }, 'Stashing uncommitted changes');
+						runAction({ command: 'commitStagedFiles', repo: this.currentRepo, message: <string>values[0] }, 'Committing staged files');
 					}, target);
 				}
 			}
@@ -3098,6 +3097,9 @@ window.addEventListener('load', () => {
 					gitGraph.closeCommitDetails(true);
 					dialog.showError('Unable to load Commit Details', msg.error, null, null);
 				}
+				break;
+			case 'commitStagedFiles':
+				refreshOrDisplayError(msg.error, 'Unable to commit staged files');
 				break;
 			case 'compareCommits':
 				if (msg.error === null) {
