@@ -1457,6 +1457,7 @@ class GitGraphView {
 				title: 'Commit staged files' + ELLIPSIS,
 				visible: visibility.stash,
 				onClick: () => {
+					dialog.disableListenKeyEvent('Enter');
 					dialog.showForm('Are you sure you want to commit the <b>staged files</b>?', [
 						{ type: DialogInputType.TextArea, name: 'Message', default: '' }
 					], 'Yes, commit', (values) => {
@@ -1976,10 +1977,10 @@ class GitGraphView {
 					handledEvent(e);
 				}
 			} else if (dialog.isOpen()) {
-				if (e.key === 'Escape') {
+				if (e.key === 'Escape' && dialog.isListenKeyEvent('Escape')) {
 					dialog.close();
 					handledEvent(e);
-				} else if (e.keyCode ? e.keyCode === 13 : e.key === 'Enter') {
+				} else if ((e.keyCode ? e.keyCode === 13 : e.key === 'Enter') && dialog.isListenKeyEvent('Enter')) {
 					// Use keyCode === 13 to detect 'Enter' events if available (for compatibility with IME Keyboards used by Chinese / Japanese / Korean users)
 					dialog.submit();
 					handledEvent(e);

@@ -99,6 +99,7 @@ class Dialog {
 	private actioned: (() => void) | null = null;
 	private type: DialogType | null = null;
 	private customSelects: { [inputIndex: string]: CustomSelect } = {};
+	private readonly keyEvents: { [key: string]: boolean } = { 'ArrowDown': true, 'ArrowUp': true, 'Enter': true, 'Escape': true };
 
 	/**
 	 * Show a confirmation dialog to the user.
@@ -381,6 +382,7 @@ class Dialog {
 		this.customSelects = {};
 		this.actioned = null;
 		this.type = null;
+		this.enableListenKeyEvent();
 	}
 
 	/**
@@ -460,6 +462,57 @@ class Dialog {
 	 */
 	public getType() {
 		return this.type;
+	}
+
+	/**
+	 * Enable listen event pressed a key
+	 * @param key Name of pressed key, null enable listen all key events
+	 */
+	public enableListenKeyEvent(key: string | null = null) {
+		if (key === null) {
+			const keys = Object.keys(this.keyEvents);
+			for (let i = 0; i < keys.length; i++) {
+				this.keyEvents[keys[i]] = true;
+			}
+		} else if (typeof this.keyEvents[key] === 'boolean' ) {
+			this.keyEvents[key] = true;
+		}
+	}
+
+	/**
+	 * Disable listen event pressed a key
+	 * @param key Name of pressed key, null disable listen all key events
+	 */
+	public disableListenKeyEvent(key: string | null = null) {
+		if (key === null) {
+			const keys = Object.keys(this.keyEvents);
+			for (let i = 0; i < keys.length; i++) {
+				this.keyEvents[keys[i]] = false;
+			}
+		} else if (typeof this.keyEvents[key] === 'boolean' ) {
+			this.keyEvents[key] = false;
+		}
+	}
+
+	/**
+	 * Check key is enabled or disabled
+	 * @param key Name of key is checked, null check for keys
+	 * @returns TRUE key is enabled to listen event.
+	 */
+	public isListenKeyEvent(key: string | null = null) {
+		let result = false;
+		if (key === null) {
+			const keys = Object.keys(this.keyEvents);
+			for (let i = 0; i < keys.length; i++) {
+				if (this.keyEvents[keys[i]] === true) {
+					result = true;
+					break;
+				}
+			}
+		} else if (typeof this.keyEvents[key] === 'boolean' ) {
+			result = this.keyEvents[key];
+		}
+		return result;
 	}
 }
 

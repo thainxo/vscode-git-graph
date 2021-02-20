@@ -1817,13 +1817,17 @@ function generateFileChanges(nameStatusRecords: DiffNameStatusRecord[], numStatR
 
 	if (stage !== null) {
 		let filePath;
-		for (i = 0; i < stage.files.length; i++) {
-			filePath = getPathFromStr(stage.files[i]);
-			if (typeof fileLookup[filePath] === 'number') {
-				fileChanges[fileLookup[filePath]].staged = true;
+		let stagedFilePath;
+		for (i = 0; i < fileChanges.length; i++) {
+			filePath = getPathFromStr(fileChanges[i].newFilePath);
+			for (let j = 0; j < stage.files.length; j++) {
+				stagedFilePath = getPathFromStr(stage.files[j]);
+				if (filePath === stagedFilePath) {
+					fileChanges[i].staged = true;
+					break;
+				}
 			}
 		}
-	
 	}
 	return fileChanges;
 }
