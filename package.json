@@ -1414,7 +1414,28 @@
 					"group": "inline"
 				}
 			]
-		}
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "id-git-graph-activity-bar",
+					"title": "Git Graph",
+					"icon": "resources/webview-icon.svg"
+				}
+			]
+		},
+		"views": {
+            "id-git-graph-activity-bar": [
+                {
+                    "id": "id-repositories",
+                    "name": "Repositories"
+                },
+                {
+                    "id": "id-working-repository",
+                    "name": "Working Repository"
+                }
+            ]
+        }
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
