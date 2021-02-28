@@ -44,23 +44,6 @@ export function pathWithTrailingSlash(path: string) {
 }
 
 /**
- * Check whether a path is within the current Visual Studio Code Workspace.
- * @param path The path to check.
- * @returns TRUE => Path is in workspace, FALSE => Path isn't in workspace.
- */
-export function isPathInWorkspace(path: string) {
-	let rootsExact = [], rootsFolder = [], workspaceFolders = vscode.workspace.workspaceFolders;
-	if (typeof workspaceFolders !== 'undefined') {
-		for (let i = 0; i < workspaceFolders.length; i++) {
-			let tmpPath = getPathFromUri(workspaceFolders[i].uri);
-			rootsExact.push(tmpPath);
-			rootsFolder.push(pathWithTrailingSlash(tmpPath));
-		}
-	}
-	return rootsExact.indexOf(path) > -1 || rootsFolder.findIndex(x => path.startsWith(x)) > -1;
-}
-
-/**
  * Get the normalised canonical absolute path (i.e. resolves symlinks in `path`).
  * @param path The path.
  * @param native Use the native realpath.

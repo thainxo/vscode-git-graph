@@ -12,13 +12,15 @@ import { StatusBarItem } from './statusBarItem';
 import { GitExecutable, UNABLE_TO_FIND_GIT_MSG, findGit, getGitExecutableFromPaths, showErrorMessage, showInformationMessage } from './utils';
 import { EventEmitter } from './utils/event';
 
+import * as repositories from './side-bar/repositories';
+
 /**
  * Activate Git Graph.
  * @param context The context of the extension.
  */
 export async function activate(context: vscode.ExtensionContext) {
 	const logger = new Logger();
-	logger.log('Starting Git Graph ...');
+	logger.log('Starting Git Graph ...');	
 
 	const gitExecutableEmitter = new EventEmitter<GitExecutable>();
 	const onDidChangeGitExecutable = gitExecutableEmitter.subscribe;
@@ -81,6 +83,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 	logger.log('Started Git Graph - Ready to use!');
 
+	repositories.activate(context, repoManager);
 	extensionState.expireOldCodeReviews();
 	onStartUp(context).catch(() => { });
 }

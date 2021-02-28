@@ -7,7 +7,7 @@ import { CodeReviewData, CodeReviews, ExtensionState } from './extensionState';
 import { GitGraphView } from './gitGraphView';
 import { Logger } from './logger';
 import { RepoManager } from './repoManager';
-import { GitExecutable, UNABLE_TO_FIND_GIT_MSG, abbrevCommit, abbrevText, copyToClipboard, getExtensionVersion, getPathFromUri, getRelativeTimeDiff, getRepoName, isPathInWorkspace, resolveToSymbolicPath, showErrorMessage, showInformationMessage } from './utils';
+import { GitExecutable, UNABLE_TO_FIND_GIT_MSG, abbrevCommit, abbrevText, copyToClipboard, getExtensionVersion, getPathFromUri, getRelativeTimeDiff, getRepoName, resolveToSymbolicPath, showErrorMessage, showInformationMessage } from './utils';
 import { Disposable } from './utils/disposable';
 import { Event } from './utils/event';
 
@@ -110,17 +110,14 @@ export class CommandManager extends Disposable {
 		vscode.window.showOpenDialog({ canSelectFiles: false, canSelectFolders: true, canSelectMany: false }).then(uris => {
 			if (uris && uris.length > 0) {
 				let path = getPathFromUri(uris[0]);
-				if (isPathInWorkspace(path)) {
-					this.repoManager.registerRepo(path, false).then(status => {
-						if (status.error === null) {
-							showInformationMessage('The repository "' + status.root! + '" was added to Git Graph.');
-						} else {
-							showErrorMessage(status.error + ' Therefore it could not be added to Git Graph.');
-						}
-					});
-				} else {
-					showErrorMessage('The folder "' + path + '" is not within the opened Visual Studio Code workspace, and therefore could not be added to Git Graph.');
-				}
+
+				this.repoManager.registerRepo(path, false).then(status => {
+					if (status.error === null) {
+						showInformationMessage('The repository "' + status.root! + '" was added to Git Graph.');
+					} else {
+						showErrorMessage(status.error + ' Therefore it could not be added to Git Graph.');
+					}
+				});
 			}
 		}, () => { });
 	}

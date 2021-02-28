@@ -53,7 +53,8 @@
 			{
 				"category": "Git Graph",
 				"command": "git-graph.addGitRepository",
-				"title": "Add Git Repository..."
+				"title": "Add Git Repository...",
+				"icon": "$(diff-review-insert)"
 			},
 			{
 				"category": "Git Graph",
@@ -78,7 +79,8 @@
 			{
 				"category": "Git Graph",
 				"command": "git-graph.removeGitRepository",
-				"title": "Remove Git Repository..."
+				"title": "Remove Git Repository...",
+				"icon": "$(diff-review-remove)"
 			},
 			{
 				"category": "Git Graph",
@@ -1413,13 +1415,25 @@
 					"command": "git-graph.view",
 					"group": "inline"
 				}
+			],
+			"view/title": [
+				{
+					"command": "git-graph.addGitRepository",
+					"when": "view == id-repositories",
+					"group": "navigation@1"
+				},
+				{
+					"command": "git-graph.removeGitRepository",
+					"when": "view == id-repositories",
+					"group": "navigation@1"
+				}
 			]
 		},
 		"viewsContainers": {
 			"activitybar": [
 				{
 					"id": "id-git-graph-activity-bar",
-					"title": "Git Graph",
+					"title": "Git Graph Manager",
 					"icon": "resources/webview-icon.svg"
 				}
 			]
@@ -1435,7 +1449,17 @@
                     "name": "Working Repository"
                 }
             ]
-        }
+        },
+		"viewsWelcome": [
+			{
+				"view": "id-repositories",
+				"contents": "No repository found.\n[Add Git Repository...](command:git-graph.addGitRepository)"
+			},
+			{
+				"view": "id-working-repository",
+				"contents": ""
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

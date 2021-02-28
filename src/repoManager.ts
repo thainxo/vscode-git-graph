@@ -142,32 +142,11 @@ export class RepoManager extends Disposable {
 	 * Run various startup tasks when Git Graph is activated.
 	 */
 	private async startupTasks() {
-		this.removeReposNotInWorkspace();
 		if (!await this.checkReposExist()) this.sendRepos();
 		this.checkReposForNewConfig();
 		await this.checkReposForNewSubmodules();
 		await this.searchWorkspaceForRepos();
 		this.startWatchingFolders();
-	}
-
-	/**
-	 * Remove any repositories that are no longer in the current workspace.
-	 */
-	private removeReposNotInWorkspace() {
-		let rootsExact = [], rootsFolder = [], workspaceFolders = vscode.workspace.workspaceFolders, repoPaths = Object.keys(this.repos), path;
-		if (typeof workspaceFolders !== 'undefined') {
-			for (let i = 0; i < workspaceFolders.length; i++) {
-				path = getPathFromUri(workspaceFolders[i].uri);
-				rootsExact.push(path);
-				rootsFolder.push(pathWithTrailingSlash(path));
-			}
-		}
-		for (let i = 0; i < repoPaths.length; i++) {
-			let repoPathFolder = pathWithTrailingSlash(repoPaths[i]);
-			if (rootsExact.indexOf(repoPaths[i]) === -1 && !rootsFolder.find(root => repoPaths[i].startsWith(root)) && !rootsExact.find(root => root.startsWith(repoPathFolder))) {
-				this.removeRepo(repoPaths[i]);
-			}
-		}
 	}
 
 	/**
