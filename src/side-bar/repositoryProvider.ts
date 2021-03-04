@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { RepoManager } from '../repoManager';
+import { RepoChangeEvent } from '../repoManager';
 import { RepositoryItem } from './repositoryItem';
 
 export class RepositoryProvider implements vscode.TreeDataProvider<RepositoryItem> {
@@ -8,13 +8,32 @@ export class RepositoryProvider implements vscode.TreeDataProvider<RepositoryIte
 
 	private data: RepositoryItem[];
 
-	constructor(repoManager: RepoManager) {
-		let repos = repoManager.getRepos();
+	constructor() {
 		this.data = [];
-		let repoPaths = Object.keys(repos);
+	}
+
+	public updateTreeItems(event: RepoChangeEvent) {
+		this.data.splice(0, this.data.length);
+		let repoPaths = Object.keys(event.repos);
 		for (let i = 0; i < repoPaths.length; i++) {
 			this.data.push(new RepositoryItem(repoPaths[i]));
 		}
+		this.refresh();
+	}
+
+	public getCurrentTreeItem(repository: string) {
+		let repositoryItem: RepositoryItem|null = null;
+		for (let i = 0; i < this.data.length; i++) {
+			if (this.data[i].getRepositoty() === repository) {
+				repositoryItem = this.data[i];
+				break;
+			}
+		}
+		return repositoryItem;
+	}
+
+	public getParent() {
+		return null;
 	}
 
 	public getTreeItem(element: RepositoryItem): vscode.TreeItem|Thenable<vscode.TreeItem> {

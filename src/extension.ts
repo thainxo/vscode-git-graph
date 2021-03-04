@@ -8,11 +8,10 @@ import { ExtensionState } from './extensionState';
 import { onStartUp } from './life-cycle/startup';
 import { Logger } from './logger';
 import { RepoManager } from './repoManager';
+import { RepositoryTreeView } from './side-bar/repositories';
 import { StatusBarItem } from './statusBarItem';
 import { GitExecutable, UNABLE_TO_FIND_GIT_MSG, findGit, getGitExecutableFromPaths, showErrorMessage, showInformationMessage } from './utils';
 import { EventEmitter } from './utils/event';
-
-import * as repositories from './side-bar/repositories';
 
 /**
  * Activate Git Graph.
@@ -45,9 +44,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	const avatarManager = new AvatarManager(dataSource, extensionState, logger);
 	const repoManager = new RepoManager(dataSource, extensionState, onDidChangeConfiguration, logger);
 	const statusBarItem = new StatusBarItem(repoManager.getNumRepos(), repoManager.onDidChangeRepos, onDidChangeConfiguration, logger);
-	const commandManager = new CommandManager(context, avatarManager, dataSource, extensionState, repoManager, gitExecutable, onDidChangeGitExecutable, logger);
+	const repositoryTreeView = new RepositoryTreeView(repoManager.onDidChangeRepos);
+	const commandManager = new CommandManager(context, avatarManager, dataSource, extensionState, repoManager, repositoryTreeView, gitExecutable, onDidChangeGitExecutable, logger);
 	const diffDocProvider = new DiffDocProvider(dataSource);
-
+	
 	context.subscriptions.push(
 		vscode.workspace.registerTextDocumentContentProvider(DiffDocProvider.scheme, diffDocProvider),
 		vscode.workspace.onDidChangeConfiguration((event) => {
@@ -79,11 +79,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		configurationEmitter,
 		extensionState,
 		gitExecutableEmitter,
+		repositoryTreeView,
 		logger
 	);
 	logger.log('Started Git Graph - Ready to use!');
 
-	repositories.activate(context, repoManager);
+	
 	extensionState.expireOldCodeReviews();
 	onStartUp(context).catch(() => { });
 }

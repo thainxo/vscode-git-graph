@@ -8,19 +8,25 @@ const iconPath = {
 };
 
 export class RepositoryItem extends vscode.TreeItem {
+	private repository: string;
 	public children: RepositoryItem[]|undefined;
 
-	constructor(repository: string, children?: RepositoryItem[]) {
+	constructor(repository: string) {		
 		let label = basename(repository);
-		super(label, children === undefined ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Expanded);
-		this.children = children;
+		super(label, vscode.TreeItemCollapsibleState.None);
+
+		this.repository = repository;
 		this.iconPath = iconPath;
-		this.description = repository;
-		this.tooltip = repository;
+		this.description = this.repository;
+		this.tooltip = this.repository;
 		this.command = {
 			arguments: [ { rootUri: vscode.Uri.file(repository) } ],
 			command: 'git-graph.view',
 			title: 'Open View Git Graph (git log)'
 		};
+	}
+
+	public getRepositoty() {
+		return this.repository;
 	}
 }
