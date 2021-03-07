@@ -9,6 +9,7 @@ import { onStartUp } from './life-cycle/startup';
 import { Logger } from './logger';
 import { RepoManager } from './repoManager';
 import { RepositoryTreeView } from './side-bar/repositories';
+import { WorkingRepositoryTreeView } from './side-bar/workingRepository';
 import { StatusBarItem } from './statusBarItem';
 import { GitExecutable, UNABLE_TO_FIND_GIT_MSG, findGit, getGitExecutableFromPaths, showErrorMessage, showInformationMessage } from './utils';
 import { EventEmitter } from './utils/event';
@@ -45,6 +46,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const repoManager = new RepoManager(dataSource, extensionState, onDidChangeConfiguration, logger);
 	const statusBarItem = new StatusBarItem(repoManager.getNumRepos(), repoManager.onDidChangeRepos, onDidChangeConfiguration, logger);
 	const repositoryTreeView = new RepositoryTreeView(repoManager.onDidChangeRepos);
+	const workingRepositoryTreeView = new WorkingRepositoryTreeView(repositoryTreeView.onDidChangeRepository, logger);
 	const commandManager = new CommandManager(context, avatarManager, dataSource, extensionState, repoManager, repositoryTreeView, gitExecutable, onDidChangeGitExecutable, logger);
 	const diffDocProvider = new DiffDocProvider(dataSource);
 	
@@ -80,6 +82,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		extensionState,
 		gitExecutableEmitter,
 		repositoryTreeView,
+		workingRepositoryTreeView,
 		logger
 	);
 	logger.log('Started Git Graph - Ready to use!');
