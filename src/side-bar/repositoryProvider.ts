@@ -3,8 +3,8 @@ import { RepoChangeEvent } from '../repoManager';
 import { RepositoryItem } from './repositoryItem';
 
 export class RepositoryProvider implements vscode.TreeDataProvider<RepositoryItem> {
-	private _onDidChangeTreeData:vscode.EventEmitter<RepositoryItem|undefined> = new vscode.EventEmitter<RepositoryItem|undefined>();
-	public readonly onDidChangeTreeData:vscode.Event<RepositoryItem|undefined> = this._onDidChangeTreeData.event;
+	private _onDidChangeTreeData:vscode.EventEmitter<undefined> = new vscode.EventEmitter<undefined>();
+	public readonly onDidChangeTreeData:vscode.Event<undefined> = this._onDidChangeTreeData.event;
 
 	private data: RepositoryItem[];
 

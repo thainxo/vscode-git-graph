@@ -46,8 +46,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	const repoManager = new RepoManager(dataSource, extensionState, onDidChangeConfiguration, logger);
 	const statusBarItem = new StatusBarItem(repoManager.getNumRepos(), repoManager.onDidChangeRepos, onDidChangeConfiguration, logger);
 	const repositoryTreeView = new RepositoryTreeView(repoManager.onDidChangeRepos);
-	const workingRepositoryTreeView = new WorkingRepositoryTreeView(repositoryTreeView.onDidChangeRepository, logger);
-	const commandManager = new CommandManager(context, avatarManager, dataSource, extensionState, repoManager, repositoryTreeView, gitExecutable, onDidChangeGitExecutable, logger);
+	const workingRepositoryTreeView = new WorkingRepositoryTreeView();
+	const commandManager = new CommandManager(context, avatarManager, dataSource, extensionState, repoManager, repositoryTreeView, workingRepositoryTreeView, gitExecutable, onDidChangeGitExecutable, logger);
 	const diffDocProvider = new DiffDocProvider(dataSource);
 	
 	context.subscriptions.push(

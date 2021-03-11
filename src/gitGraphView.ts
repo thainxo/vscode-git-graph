@@ -7,7 +7,6 @@ import { ExtensionState } from './extensionState';
 import { Logger } from './logger';
 import { RepoFileWatcher } from './repoFileWatcher';
 import { RepoManager } from './repoManager';
-import { RepositoryTreeView } from './side-bar/repositories';
 import { ErrorInfo, GitConfigLocation, GitGraphViewInitialState, GitPushBranchMode, GitRepoSet, LoadGitGraphViewTo, RequestMessage, ResponseMessage, TabIconColourTheme } from './types';
 import { UNABLE_TO_FIND_GIT_MSG, UNCOMMITTED, archive, copyFilePathToClipboard, copyToClipboard, createPullRequest, getNonce, openExtensionSettings, openExternalUrl, openFile, showErrorMessage, viewDiff, viewFileAtRevision, viewScm } from './utils';
 import { Disposable, toDisposable } from './utils/disposable';
@@ -25,7 +24,6 @@ export class GitGraphView extends Disposable {
 	private readonly extensionState: ExtensionState;
 	private readonly repoFileWatcher: RepoFileWatcher;
 	private readonly repoManager: RepoManager;
-	private readonly repositoryTreeView: RepositoryTreeView;
 	private readonly logger: Logger;
 	private isGraphViewLoaded: boolean = false;
 	private isPanelVisible: boolean = true;
@@ -45,7 +43,7 @@ export class GitGraphView extends Disposable {
 	 * @param logger The Git Graph Logger instance.
 	 * @param loadViewTo What to load the view to.
 	 */
-	public static createOrShow(extensionPath: string, dataSource: DataSource, extensionState: ExtensionState, avatarManager: AvatarManager, repoManager: RepoManager, repositoryTreeView: RepositoryTreeView, logger: Logger, loadViewTo: LoadGitGraphViewTo) {
+	public static createOrShow(extensionPath: string, dataSource: DataSource, extensionState: ExtensionState, avatarManager: AvatarManager, repoManager: RepoManager, logger: Logger, loadViewTo: LoadGitGraphViewTo) {
 		const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
 		if (GitGraphView.currentPanel) {
@@ -62,7 +60,7 @@ export class GitGraphView extends Disposable {
 			GitGraphView.currentPanel.panel.reveal(column);
 		} else {
 			// If Git Graph panel doesn't already exist
-			GitGraphView.currentPanel = new GitGraphView(extensionPath, dataSource, extensionState, avatarManager, repoManager, repositoryTreeView, logger, loadViewTo, column);
+			GitGraphView.currentPanel = new GitGraphView(extensionPath, dataSource, extensionState, avatarManager, repoManager, logger, loadViewTo, column);
 		}
 	}
 
@@ -78,14 +76,13 @@ export class GitGraphView extends Disposable {
 	 * @param loadViewTo What to load the view to.
 	 * @param column The column the view should be loaded in.
 	 */
-	private constructor(extensionPath: string, dataSource: DataSource, extensionState: ExtensionState, avatarManager: AvatarManager, repoManager: RepoManager, repositoryTreeView: RepositoryTreeView, logger: Logger, loadViewTo: LoadGitGraphViewTo, column: vscode.ViewColumn | undefined) {
+	private constructor(extensionPath: string, dataSource: DataSource, extensionState: ExtensionState, avatarManager: AvatarManager, repoManager: RepoManager, logger: Logger, loadViewTo: LoadGitGraphViewTo, column: vscode.ViewColumn | undefined) {
 		super();
 		this.extensionPath = extensionPath;
 		this.avatarManager = avatarManager;
 		this.dataSource = dataSource;
 		this.extensionState = extensionState;
 		this.repoManager = repoManager;
-		this.repositoryTreeView = repositoryTreeView;
 		this.logger = logger;
 		this.loadViewTo = loadViewTo;
 
@@ -410,7 +407,7 @@ export class GitGraphView extends Disposable {
 				break;
 			case 'loadCommits':
 				this.loadCommitsRefreshId = msg.refreshId;
-				this.repositoryTreeView.setSelectedItem(msg.repo);
+				vscode.commands.executeCommand('git-graph.repository.selectRepository', { repo: msg.repo} );
 				
 				this.sendMessage({
 					command: 'loadCommits',

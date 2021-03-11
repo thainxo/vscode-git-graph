@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 import * as rimraf from 'rimraf';
-import { Logger } from '../logger';
+import { WorkingRepositoryItem } from './workingRepositoryItem';
 
 // #region Utilities
 
@@ -87,7 +87,7 @@ namespace _ {
 
 	export function exists(path: string): Promise<boolean> {
 		return new Promise<boolean>((resolve, reject) => {
-			fs.exists(path, exists => handleResult(resolve, reject, null, exists));
+			fs.access(path, (error) => handleResult(resolve, reject, error, !error));
 		});
 	}
 
@@ -100,9 +100,9 @@ namespace _ {
 	// FIXED ME
 	export function mkdir(path: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			mkdirp(path).then(_make =>
-				handleResult(resolve, reject, null, void 0)
-			);
+			mkdirp(path)
+				.then(_make => handleResult(resolve, reject, null, void 0))
+				.catch(error => handleResult(resolve, reject, error, void 0));
 		});
 	}
 
@@ -152,25 +152,18 @@ export class FileStat implements vscode.FileStat {
 	}
 }
 
-export interface Entry {
-	uri: vscode.Uri;
-	type: vscode.FileType;
-}
 
 // #endregion
 
-export class WorkingRepositoryProvider implements vscode.TreeDataProvider<Entry>, vscode.FileSystemProvider {
-	private _onDidChangeTreeData:vscode.EventEmitter<Entry|undefined> = new vscode.EventEmitter<Entry|undefined>();
-	public readonly onDidChangeTreeData:vscode.Event<Entry|undefined> = this._onDidChangeTreeData.event;
-
+export class WorkingRepositoryProvider implements vscode.TreeDataProvider<WorkingRepositoryItem>, vscode.FileSystemProvider {
+	private _onDidChangeTreeData:vscode.EventEmitter<WorkingRepositoryItem|undefined> = new vscode.EventEmitter<WorkingRepositoryItem|undefined>();
+	public readonly onDidChangeTreeData:vscode.Event<WorkingRepositoryItem|undefined> = this._onDidChangeTreeData.event;
 	private _onDidChangeFile: vscode.EventEmitter<vscode.FileChangeEvent[]>;
+	
 	private _repository: string | null;
-	private logger: Logger;
-
-	constructor(logger: Logger) {
+	constructor() {
 		this._onDidChangeFile = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
 		this._repository = null;
-		this.logger = logger;
 	}
 
 	get onDidChangeFile(): vscode.Event<vscode.FileChangeEvent[]> {
@@ -280,18 +273,17 @@ export class WorkingRepositoryProvider implements vscode.TreeDataProvider<Entry>
 	}
 
 	// tree data provider
-
-	public async getChildren(element?: Entry): Promise<Entry[]> {
-		this.logger.log(' getChildren ');
-		if (element) {
-			const children = await this.readDirectory(element.uri);
-			return children.map(([name, type]) => ({ uri: vscode.Uri.file(path.join(element.uri.fsPath, name)), type }));
+	public async getChildren(element?: WorkingRepositoryItem): Promise<WorkingRepositoryItem[]> {
+		if (element && element.resourceUri) {
+			const children = await this.readDirectory(element.resourceUri);
+			return children.map(([name, type]) => {
+				return new WorkingRepositoryItem(path.join(element.resourceUri!.fsPath, name), type );
+			});
 		}
 
 		if (this._repository !== null) {
 			const repositoryUri = vscode.Uri.file(this._repository);
 			if (repositoryUri) {
-				this.logger.log(' getChildren readDirectory');
 				const children = await this.readDirectory(repositoryUri);				
 				children.sort((a, b) => {
 					if (a[1] === b[1]) {
@@ -299,24 +291,31 @@ export class WorkingRepositoryProvider implements vscode.TreeDataProvider<Entry>
 					}
 					return a[1] === vscode.FileType.Directory ? -1 : 1;
 				});
-				return children.map(([name, type]) => ({ uri: vscode.Uri.file(path.join(repositoryUri.fsPath, name)), type }));
+				return children.map(([name, type]) => {
+					return new WorkingRepositoryItem(path.join(repositoryUri.fsPath, name), type );
+				});
 			}
 		}
 
 		return [];
 	}
 
-	public getTreeItem(element: Entry): vscode.TreeItem {
-		const treeItem = new vscode.TreeItem(element.uri, element.type === vscode.FileType.Directory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
-		if (element.type === vscode.FileType.File) {
-			treeItem.command = { command: 'fileExplorer.openFile', title: 'Open File', arguments: [element.uri] };
-			treeItem.contextValue = 'file';
-		}
-		return treeItem;
+	public getParent() {
+		return null;
 	}
 
-	public changeRepository(repository: string) {
-		this._repository = repository;
-		this._onDidChangeTreeData.fire(undefined);	
+	public getTreeItem(element: WorkingRepositoryItem): WorkingRepositoryItem {
+		return element;
+	}
+
+	public changeRepository(repository: string) {		
+		if (repository !== this._repository) {
+			this._repository = repository;
+			this.refresh();
+		}
+	}
+
+	public refresh(): void {
+		this._onDidChangeTreeData.fire();
 	}
 }
