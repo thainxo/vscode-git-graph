@@ -407,7 +407,7 @@ export class GitGraphView extends Disposable {
 				break;
 			case 'loadCommits':
 				this.loadCommitsRefreshId = msg.refreshId;
-				vscode.commands.executeCommand('git-graph.repository.selectRepository', { repo: msg.repo} );
+				vscode.commands.executeCommand('git-graph.repository.selectRepository', { repo: msg.repo } );
 				
 				this.sendMessage({
 					command: 'loadCommits',

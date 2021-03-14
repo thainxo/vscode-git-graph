@@ -91,6 +91,16 @@
 				"category": "Git Graph",
 				"command": "git-graph.version",
 				"title": "Get Version Information"
+			},
+			{
+				"category": "Git Graph",
+				"command": "git-graph.removeGitSpecificRepository",
+				"title": "Remove Git Repository"
+			},
+			{
+				"category": "Git Graph",
+				"command": "git-graph.workspace.historyFile",
+				"title": "Show history"
 			}
 		],
 		"configuration": {
@@ -1421,11 +1431,16 @@
 					"command": "git-graph.addGitRepository",
 					"when": "view == id-repositories",
 					"group": "navigation@1"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "git-graph.workspace.historyFile",
+					"when": "view == id-working-repository && viewItem == file"					
 				},
 				{
-					"command": "git-graph.removeGitRepository",
-					"when": "view == id-repositories",
-					"group": "navigation@1"
+					"command": "git-graph.removeGitSpecificRepository",
+					"when": "view == id-repositories && viewItem == repository"					
 				}
 			]
 		},

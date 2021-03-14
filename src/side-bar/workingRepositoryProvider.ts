@@ -305,6 +305,9 @@ export class WorkingRepositoryProvider implements vscode.TreeDataProvider<Workin
 	}
 
 	public getTreeItem(element: WorkingRepositoryItem): WorkingRepositoryItem {
+		if (element.type === vscode.FileType.File) {
+			element.command = { command: 'git-graph.workspace.openFile', title: 'Open File', arguments: [ element.resourceUri ] };
+		}
 		return element;
 	}
 
