@@ -36,7 +36,7 @@ export class RepositoryProvider implements vscode.TreeDataProvider<RepositoryIte
 		return null;
 	}
 
-	public getTreeItem(element: RepositoryItem): vscode.TreeItem|Thenable<vscode.TreeItem> {
+	public getTreeItem(element: RepositoryItem): RepositoryItem|Thenable<RepositoryItem> {
 		return element;
 	}
 

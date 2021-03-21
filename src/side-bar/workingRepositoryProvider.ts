@@ -156,14 +156,14 @@ export class FileStat implements vscode.FileStat {
 // #endregion
 
 export class WorkingRepositoryProvider implements vscode.TreeDataProvider<WorkingRepositoryItem>, vscode.FileSystemProvider {
-	private _onDidChangeTreeData:vscode.EventEmitter<WorkingRepositoryItem|undefined> = new vscode.EventEmitter<WorkingRepositoryItem|undefined>();
-	public readonly onDidChangeTreeData:vscode.Event<WorkingRepositoryItem|undefined> = this._onDidChangeTreeData.event;
+	private _onDidChangeTreeData:vscode.EventEmitter<WorkingRepositoryItem | undefined> = new vscode.EventEmitter<WorkingRepositoryItem | undefined>();
+	public readonly onDidChangeTreeData:vscode.Event<WorkingRepositoryItem | undefined> = this._onDidChangeTreeData.event;
 	private _onDidChangeFile: vscode.EventEmitter<vscode.FileChangeEvent[]>;
 	
-	private _repository: string | null;
+	private repository: string;
 	constructor() {
 		this._onDidChangeFile = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
-		this._repository = null;
+		this.repository = '.';
 	}
 
 	get onDidChangeFile(): vscode.Event<vscode.FileChangeEvent[]> {
@@ -277,12 +277,12 @@ export class WorkingRepositoryProvider implements vscode.TreeDataProvider<Workin
 		if (element && element.resourceUri) {
 			const children = await this.readDirectory(element.resourceUri);
 			return children.map(([name, type]) => {
-				return new WorkingRepositoryItem(path.join(element.resourceUri!.fsPath, name), type );
+				return new WorkingRepositoryItem(this.repository, path.join(element.resourceUri!.fsPath, name), type );
 			});
 		}
 
-		if (this._repository !== null) {
-			const repositoryUri = vscode.Uri.file(this._repository);
+		if (this.repository !== null) {
+			const repositoryUri = vscode.Uri.file(this.repository);
 			if (repositoryUri) {
 				const children = await this.readDirectory(repositoryUri);				
 				children.sort((a, b) => {
@@ -292,7 +292,7 @@ export class WorkingRepositoryProvider implements vscode.TreeDataProvider<Workin
 					return a[1] === vscode.FileType.Directory ? -1 : 1;
 				});
 				return children.map(([name, type]) => {
-					return new WorkingRepositoryItem(path.join(repositoryUri.fsPath, name), type );
+					return new WorkingRepositoryItem(this.repository, path.join(repositoryUri.fsPath, name), type );
 				});
 			}
 		}
@@ -312,8 +312,8 @@ export class WorkingRepositoryProvider implements vscode.TreeDataProvider<Workin
 	}
 
 	public changeRepository(repository: string) {		
-		if (repository !== this._repository) {
-			this._repository = repository;
+		if (repository !== this.repository) {
+			this.repository = repository;
 			this.refresh();
 		}
 	}

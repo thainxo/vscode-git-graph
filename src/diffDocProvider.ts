@@ -2,8 +2,9 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { DataSource } from './dataSource';
 import { GitFileStatus } from './types';
-import { UNCOMMITTED, getPathFromStr, showErrorMessage } from './utils';
+import { UNCOMMITTED, showErrorMessage } from './utils';
 import { Disposable, toDisposable } from './utils/disposable';
+import { FileProviderUriData, decodeFileProviderUri, encodeFileProviderUri } from './viewProvider/providerUtils';
 
 export const enum DiffSide {
 	Old,
@@ -93,15 +94,6 @@ class DiffDocument {
 /* Encoding and decoding URI's */
 
 /**
- * Represents the data passed through `git-graph://file.ext?encoded-data` URI's by the DiffDocProvider.
- */
-type DiffDocUriData = {
-	filePath: string;
-	commit: string;
-	repo: string;
-} | null;
-
-/**
  * Produce the URI of a file to be used in the Visual Studio Diff View.
  * @param repo The repository the file is within.
  * @param filePath The path of the file.
@@ -114,25 +106,18 @@ export function encodeDiffDocUri(repo: string, filePath: string, commit: string,
 	if (commit === UNCOMMITTED && type !== GitFileStatus.Deleted) {
 		return vscode.Uri.file(path.join(repo, filePath));
 	}
-
-	let data: DiffDocUriData, extension: string;
+	
 	if ((diffSide === DiffSide.Old && type === GitFileStatus.Added) || (diffSide === DiffSide.New && type === GitFileStatus.Deleted)) {
+		let data: FileProviderUriData, extension: string;
 		data = null;
 		extension = '';
+		return vscode.Uri.file('file' + extension).with({
+			scheme: DiffDocProvider.scheme,
+			query: Buffer.from(JSON.stringify(data)).toString('base64')
+		});
 	} else {
-		data = {
-			filePath: getPathFromStr(filePath),
-			commit: commit,
-			repo: repo
-		};
-		let extIndex = data.filePath.indexOf('.', data.filePath.lastIndexOf('/') + 1);
-		extension = extIndex > -1 ? data.filePath.substring(extIndex) : '';
+		return encodeFileProviderUri(DiffDocProvider.scheme, repo, filePath, commit);
 	}
-
-	return vscode.Uri.file('file' + extension).with({
-		scheme: DiffDocProvider.scheme,
-		query: Buffer.from(JSON.stringify(data)).toString('base64')
-	});
 }
 
 /**
@@ -140,6 +125,6 @@ export function encodeDiffDocUri(repo: string, filePath: string, commit: string,
  * @param uri The URI to decode data from.
  * @returns The decoded DiffDocUriData.
  */
-export function decodeDiffDocUri(uri: vscode.Uri): DiffDocUriData {
-	return JSON.parse(Buffer.from(uri.query, 'base64').toString());
+export function decodeDiffDocUri(uri: vscode.Uri): FileProviderUriData {
+	return decodeFileProviderUri(uri);
 }

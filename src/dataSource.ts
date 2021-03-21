@@ -1384,6 +1384,24 @@ export class DataSource extends Disposable {
 	}
 
 	/**
+	 * Blame file
+	 * @param repo The path of the repository.
+	 * @param file path of file
+	 * @returns The ErrorInfo from opening the terminal.
+	 */
+	public blameFile(repo: string, file: string) {
+		let args = [];
+		// args.push('-c');
+		// args.push('user.useConfigOnly=true');
+		args.push('--no-pager');
+		args.push('blame');
+		args.push(file);
+		return this.spawnGit(args, repo, (stdout) => {
+			return stdout;
+		});
+	}
+
+	/**
 	 * Get the configuration list of a repository.
 	 * @param repo The path of the repository.
 	 * @param location The location of the configuration to be listed.

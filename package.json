@@ -101,6 +101,16 @@
 				"category": "Git Graph",
 				"command": "git-graph.workspace.historyFile",
 				"title": "Show history"
+			},
+			{
+				"category": "Git Graph",
+				"command": "git-graph.workspace.openInTerminal",
+				"title": "Open in terminal"
+			},
+			{
+				"category": "Git Graph",
+				"command": "git-graph.repository.openInTerminal",
+				"title": "Open in terminal"
 			}
 		],
 		"configuration": {
@@ -1435,12 +1445,24 @@
 			],
 			"view/item/context": [
 				{
+					"command": "git-graph.workspace.openInTerminal",
+					"group": "1_terminal@1",
+					"when": "view == id-working-repository"
+				},
+				{
 					"command": "git-graph.workspace.historyFile",
-					"when": "view == id-working-repository && viewItem == file"					
+					"group": "2_repository@1",
+					"when": "view == id-working-repository && viewItem == file"
+				},
+				{
+					"command": "git-graph.repository.openInTerminal",
+					"group": "1_terminal@1",
+					"when": "view == id-repositories"
 				},
 				{
 					"command": "git-graph.removeGitSpecificRepository",
-					"when": "view == id-repositories && viewItem == repository"					
+					"group": "2_repository@1",
+					"when": "view == id-repositories && viewItem == repository"
 				}
 			]
 		},

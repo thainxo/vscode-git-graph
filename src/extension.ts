@@ -5,6 +5,7 @@ import { getConfig } from './config';
 import { DataSource } from './dataSource';
 import { DiffDocProvider } from './diffDocProvider';
 import { ExtensionState } from './extensionState';
+import { FileHistoryProvider } from './fileHistoryProvider';
 import { onStartUp } from './life-cycle/startup';
 import { Logger } from './logger';
 import { RepoManager } from './repoManager';
@@ -49,9 +50,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	const workingRepositoryTreeView = new WorkingRepositoryTreeView();
 	const commandManager = new CommandManager(context, avatarManager, dataSource, extensionState, repoManager, repositoryTreeView, workingRepositoryTreeView, gitExecutable, onDidChangeGitExecutable, logger);
 	const diffDocProvider = new DiffDocProvider(dataSource);
+	const fileHistoryProvider = new FileHistoryProvider(dataSource);
 	
 	context.subscriptions.push(
 		vscode.workspace.registerTextDocumentContentProvider(DiffDocProvider.scheme, diffDocProvider),
+		vscode.workspace.registerTextDocumentContentProvider(FileHistoryProvider.scheme, fileHistoryProvider),
 		vscode.workspace.onDidChangeConfiguration((event) => {
 			if (event.affectsConfiguration('git-graph')) {
 				configurationEmitter.emit(event);
@@ -73,6 +76,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 		}),
 		diffDocProvider,
+		fileHistoryProvider,
 		commandManager,
 		statusBarItem,
 		repoManager,

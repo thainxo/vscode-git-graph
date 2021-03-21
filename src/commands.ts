@@ -4,6 +4,8 @@ import { AvatarManager } from './avatarManager';
 import { getConfig } from './config';
 import { DataSource } from './dataSource';
 import { CodeReviewData, CodeReviews, ExtensionState } from './extensionState';
+import { FileHistoryProvider } from './fileHistoryProvider';
+import * as fs from 'fs';
 import { GitGraphView } from './gitGraphView';
 import { Logger } from './logger';
 import { RepoManager } from './repoManager';
@@ -12,6 +14,7 @@ import { WorkingRepositoryTreeView } from './side-bar/workingRepository';
 import { GitExecutable, UNABLE_TO_FIND_GIT_MSG, abbrevCommit, abbrevText, copyToClipboard, getExtensionVersion, getPathFromUri, getRelativeTimeDiff, getRepoName, resolveToSymbolicPath, showErrorMessage, showInformationMessage } from './utils';
 import { Disposable } from './utils/disposable';
 import { Event } from './utils/event';
+import { dirname } from 'path';
 
 /**
  * Manages the registration and execution of Git Graph Commands.
@@ -66,6 +69,8 @@ export class CommandManager extends Disposable {
 		this.registerCommand('git-graph.workspace.changeRepository', (arg) => this.workspaceChangeRepository(arg));
 		this.registerCommand('git-graph.workspace.openFile', (resource) => this.openResource(resource));
 		this.registerCommand('git-graph.workspace.historyFile', (resource) => this.historyFile(resource));
+		this.registerCommand('git-graph.workspace.openInTerminal', (resource) => this.workspaceOpenInTerminal(resource));
+		this.registerCommand('git-graph.repository.openInTerminal', (resource) => this.repositoryOpenInTerminal(resource));
 
 		this.registerDisposable(
 			onDidChangeGitExecutable((gitExecutable) => {
@@ -352,10 +357,33 @@ export class CommandManager extends Disposable {
 	}
 	
 	private historyFile(resource: any): void {
+		FileHistoryProvider.openHistoryFile(resource);
+	}
+
+	private workspaceOpenInTerminal(resource: any): void {
 		if (typeof resource === 'object') {
 			let resourceUri: vscode.Uri = resource.resourceUri;
-			vscode.window.showTextDocument(resourceUri);
+			this.openInTerminal(resourceUri);
 		}
+	}
+
+	private repositoryOpenInTerminal(resource: any): void {
+		if (typeof resource === 'object') {
+			let repo: string = resource.getRepositoty();
+			let resourceUri: vscode.Uri = vscode.Uri.file(repo);
+			this.openInTerminal(resourceUri);
+		}
+	}
+
+	private async openInTerminal(resourceUri: vscode.Uri): Promise<void> {
+		let path = resourceUri.fsPath;
+		if (!fs.lstatSync(resourceUri.fsPath).isDirectory()) {
+			path = dirname(resourceUri.fsPath);
+		}
+		let terminal = vscode.window.createTerminal({			
+			cwd: path
+		});
+		terminal.show(false);
 	}
 
 	/* Helper Methods */
