@@ -4,7 +4,7 @@ import { AvatarManager } from './avatarManager';
 import { getConfig } from './config';
 import { DataSource } from './dataSource';
 import { CodeReviewData, CodeReviews, ExtensionState } from './extensionState';
-import { FileHistoryProvider } from './fileHistoryProvider';
+import { FileHistoryProvider } from './viewProvider/fileHistoryProvider';
 import * as fs from 'fs';
 import { GitGraphView } from './gitGraphView';
 import { Logger } from './logger';
@@ -196,7 +196,7 @@ export class CommandManager extends Disposable {
 	private fetch() {
 		const repos = this.repoManager.getRepos();
 		const repoPaths = Object.keys(repos);
-
+ 
 		if (repoPaths.length > 1) {
 			const items: vscode.QuickPickItem[] = repoPaths.map((path) => ({
 				label: repos[path].name || getRepoName(path),

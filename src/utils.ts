@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getConfig } from './config';
 import { DataSource } from './dataSource';
-import { DiffSide, encodeDiffDocUri } from './diffDocProvider';
+import { DiffSide, encodeDiffDocUri } from './viewProvider/diffDocProvider';
 import { ExtensionState } from './extensionState';
 import { ErrorInfo, GitFileStatus, PullRequestConfig, PullRequestProvider } from './types';
 

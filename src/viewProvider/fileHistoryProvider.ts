@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { DataSource } from './dataSource';
-import { Disposable } from './utils/disposable';
-import { decodeFileProviderUri, encodeFileProviderUri } from './viewProvider/providerUtils';
+import { DataSource } from '../dataSource';
+import { Disposable } from '../utils/disposable';
+import { decodeFileProviderUri, encodeFileProviderUri } from './providerUtils';
 
 export class FileHistoryProvider extends Disposable implements vscode.TextDocumentContentProvider {
 	public static scheme = 'git-graph.fileHistory';
