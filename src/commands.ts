@@ -15,6 +15,7 @@ import { GitExecutable, UNABLE_TO_FIND_GIT_MSG, abbrevCommit, abbrevText, copyTo
 import { Disposable } from './utils/disposable';
 import { Event } from './utils/event';
 import { dirname } from 'path';
+import { DiffDocProvider } from './viewProvider/diffDocProvider';
 
 /**
  * Manages the registration and execution of Git Graph Commands.
@@ -66,11 +67,14 @@ export class CommandManager extends Disposable {
 
 		this.registerCommand('git-graph.repository.refresh', () => this.repositoryRefresh());
 		this.registerCommand('git-graph.repository.selectRepository', (arg) => this.repositorySelectRepository(arg));
+		this.registerCommand('git-graph.repository.openInTerminal', (resource) => this.repositoryOpenInTerminal(resource));
+
 		this.registerCommand('git-graph.workspace.changeRepository', (arg) => this.workspaceChangeRepository(arg));
 		this.registerCommand('git-graph.workspace.openFile', (resource) => this.openResource(resource));
 		this.registerCommand('git-graph.workspace.historyFile', (resource) => this.historyFile(resource));
+		this.registerCommand('git-graph.workspace.diffPrevious', (resource) => this.diffPrevious(resource));
+		this.registerCommand('git-graph.workspace.discardChanges', (resource) => this.discardChanges(resource));		
 		this.registerCommand('git-graph.workspace.openInTerminal', (resource) => this.workspaceOpenInTerminal(resource));
-		this.registerCommand('git-graph.repository.openInTerminal', (resource) => this.repositoryOpenInTerminal(resource));
 
 		this.registerDisposable(
 			onDidChangeGitExecutable((gitExecutable) => {
@@ -358,6 +362,17 @@ export class CommandManager extends Disposable {
 	
 	private historyFile(resource: any): void {
 		FileHistoryProvider.openHistoryFile(resource);
+	}
+
+	private diffPrevious(resource: any): void {
+		DiffDocProvider.diffPrevious(resource);
+	}
+
+	private discardChanges(resource: any): void {
+		this.logger.log('diffPrevious: ' + JSON.stringify(resource));
+		if (typeof resource === 'object') {
+			this.dataSource.discardChanges(resource.repository, resource.resourceUri.fsPath);
+		}
 	}
 
 	private workspaceOpenInTerminal(resource: any): void {

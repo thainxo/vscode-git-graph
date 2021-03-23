@@ -1298,6 +1298,15 @@ export class DataSource extends Disposable {
 		return this.runGitCommand(args, repo);
 	}
 
+	public discardChanges(repo: string, filePath: string) {
+		let args = [];
+		args.push('checkout');
+		args.push('-q');
+		args.push(filePath);
+
+		return this.runGitCommand(args, repo);
+	}
+
 	/* Private Data Providers */
 
 	/**

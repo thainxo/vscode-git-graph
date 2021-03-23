@@ -154,7 +154,6 @@ export class FileStat implements vscode.FileStat {
 
 
 // #endregion
-
 export class WorkingRepositoryProvider implements vscode.TreeDataProvider<WorkingRepositoryItem>, vscode.FileSystemProvider {
 	private _onDidChangeTreeData:vscode.EventEmitter<WorkingRepositoryItem | undefined> = new vscode.EventEmitter<WorkingRepositoryItem | undefined>();
 	public readonly onDidChangeTreeData:vscode.Event<WorkingRepositoryItem | undefined> = this._onDidChangeTreeData.event;

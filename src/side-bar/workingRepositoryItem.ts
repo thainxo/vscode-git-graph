@@ -9,6 +9,6 @@ export class WorkingRepositoryItem extends vscode.TreeItem {
 		super(repositoryUri, type === vscode.FileType.Directory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
 		this.type = type;
 		this.repository = repository;
-		this.contextValue = this.type === vscode.FileType.Directory ? this.contextValue : 'file';
+		this.contextValue = this.type === vscode.FileType.File ? 'file' : this.contextValue;
 	}
 }

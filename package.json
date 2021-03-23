@@ -99,13 +99,23 @@
 			},
 			{
 				"category": "Git Graph",
-				"command": "git-graph.workspace.historyFile",
-				"title": "Show history"
+				"command": "git-graph.workspace.openInTerminal",
+				"title": "Open in terminal"
 			},
 			{
 				"category": "Git Graph",
-				"command": "git-graph.workspace.openInTerminal",
-				"title": "Open in terminal"
+				"command": "git-graph.workspace.historyFile",
+				"title": "Blame"
+			},
+			{
+				"category": "Git Graph",
+				"command": "git-graph.workspace.diffPrevious",
+				"title": "Open Changes"
+			},
+			{
+				"category": "Git Graph",
+				"command": "git-graph.workspace.discardChanges",
+				"title": "Discard Changes"
 			},
 			{
 				"category": "Git Graph",
@@ -1452,6 +1462,16 @@
 				{
 					"command": "git-graph.workspace.historyFile",
 					"group": "2_repository@1",
+					"when": "view == id-working-repository && viewItem == file"
+				},
+				{
+					"command": "git-graph.workspace.diffPrevious",
+					"group": "2_repository@2",
+					"when": "view == id-working-repository && viewItem == file"
+				},
+				{
+					"command": "git-graph.workspace.discardChanges",
+					"group": "2_repository@3",
 					"when": "view == id-working-repository && viewItem == file"
 				},
 				{

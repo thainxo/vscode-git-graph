@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { getConfig } from '../config';
 import { DataSource } from '../dataSource';
 import { GitFileStatus } from '../types';
 import { UNCOMMITTED, showErrorMessage } from '../utils';
@@ -65,6 +66,26 @@ export class DiffDocProvider extends Disposable implements vscode.TextDocumentCo
 				return '';
 			}
 		);
+	}
+
+	public static diffPrevious(resource: any) {
+		if (typeof resource === 'object') {			
+			let type = resource.type;
+			let rPath = path.relative(resource.repository, resource.resourceUri.fsPath);
+			let title = rPath + ' (* ↔ HEAD)';
+			vscode.commands.executeCommand('vscode.diff',
+				encodeDiffDocUri(resource.repository, rPath, 'HEAD', type, DiffSide.New),
+				encodeDiffDocUri(resource.repository, rPath, '*', type, DiffSide.Old),
+				title, 
+				{
+					preview: true,
+					viewColumn: getConfig().openNewTabEditorGroup
+				}
+			).then(
+				() => null,
+				() => 'Visual Studio Code was unable load the diff editor for ' + resource.resourceUri.fsPath + '.'
+			);
+		}
 	}
 }
 
