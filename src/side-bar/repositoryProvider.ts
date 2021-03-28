@@ -18,6 +18,19 @@ export class RepositoryProvider implements vscode.TreeDataProvider<RepositoryIte
 		for (let i = 0; i < repoPaths.length; i++) {
 			this.data.push(new RepositoryItem(repoPaths[i]));
 		}
+		this.data.sort((a, b) => {
+			if (a.label !== null && typeof a.label !== 'undefined') {
+				if (b.label === null || typeof b.label === 'undefined') {
+					return 0;
+				} else {
+					return a.label.localeCompare(b.label, 'en', {
+						sensitivity: 'base'
+					});
+				}
+			} else {
+				return 1;
+			}
+		});
 		this.refresh();
 	}
 
