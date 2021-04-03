@@ -17,6 +17,13 @@ const INVALID_BRANCH_REGEXP = /^\(.* .*\)$/;
 const REMOTE_HEAD_BRANCH_REGEXP = /^remotes\/.*\/HEAD$/;
 const GIT_LOG_SEPARATOR = 'XX7Nal-YARtTpjCikii9nJxER19D6diSyk-AWkPb';
 
+// git unpush
+// git log @{push}..
+// git cherry -v 
+// git log @{u}..
+// git log --branches --not --remotes
+// git log --branches --not --remotes --simplify-by-decoration --decorate --oneline
+
 export const GIT_CONFIG = {
 	DIFF: {
 		GUI_TOOL: 'diff.guitool',
@@ -162,9 +169,10 @@ export class DataSource extends Disposable {
 		const config = getConfig();
 		return Promise.all([
 			this.getLog(repo, branches, maxCommits + 1, showTags && config.showCommitsOnlyReferencedByTags, showRemoteBranches, includeCommitsMentionedByReflogs, onlyFollowFirstParent, commitOrdering, remotes, hideRemotes, stashes),
-			this.getRefs(repo, showRemoteBranches, config.showRemoteHeads, hideRemotes).then((refData: GitRefData) => refData, (errorMessage: string) => errorMessage)
+			this.getRefs(repo, showRemoteBranches, config.showRemoteHeads, hideRemotes).then((refData: GitRefData) => refData, (errorMessage: string) => errorMessage),
+			this.getLogLocal(repo, maxCommits + 1, commitOrdering)
 		]).then(async (results) => {
-			let commits: GitCommitRecord[] = results[0], refData: GitRefData | string = results[1], i;
+			let commits: GitCommitRecord[] = results[0], refData: GitRefData | string = results[1], i, localCommits: GitCommitRecord[] = results[2];
 			let moreCommitsAvailable = commits.length === maxCommits + 1;
 			if (moreCommitsAvailable) commits.pop();
 
@@ -185,7 +193,7 @@ export class DataSource extends Disposable {
 					if (refData.head === commits[i].hash) {
 						const numUncommittedChanges = await this.getUncommittedChanges(repo);
 						if (numUncommittedChanges > 0) {
-							commits.unshift({ hash: UNCOMMITTED, parents: [refData.head], author: '*', email: '', date: Math.round((new Date()).getTime() / 1000), message: 'Uncommitted Changes (' + numUncommittedChanges + ')' });
+							commits.unshift({ hash: UNCOMMITTED, parents: [refData.head], author: '*', email: '', date: Math.round((new Date()).getTime() / 1000), message: 'Uncommitted Changes (' + numUncommittedChanges + ')', local: 0 });
 						}
 						break;
 					}
@@ -223,6 +231,7 @@ export class DataSource extends Disposable {
 					email: stash.email,
 					date: stash.date,
 					message: stash.message,
+					local: 0,
 					heads: [], tags: [], remotes: [],
 					stash: {
 						selector: stash.selector,
@@ -254,6 +263,13 @@ export class DataSource extends Disposable {
 					let name = refData.remotes[i].name;
 					let remote = remotes.find(remote => name.startsWith(remote + '/'));
 					commitNodes[commitLookup[refData.remotes[i].hash]].remotes.push({ name: name, remote: remote ? remote : null });
+				}
+			}
+
+			/* Mark commits are not pushed */
+			for (i = 0; i < localCommits.length; i++) {
+				if (typeof commitLookup[localCommits[i].hash] === 'number') {
+					commitNodes[commitLookup[localCommits[i].hash]].local = localCommits[i].local;
 				}
 			}
 
@@ -1381,12 +1397,15 @@ export class DataSource extends Disposable {
 	 * @param message The message of the committion.
 	 * @returns The ErrorInfo from opening the terminal.
 	 */
-	public commitStagedFiles(repo: string, message: string) {
+	public commitStagedFiles(repo: string, message: string, amend: boolean) {
 		let args = [];
 		// args.push('-c');
 		// args.push('user.useConfigOnly=true');
 		args.push('commit');
 		args.push('--quiet');
+		if (amend) {
+			args.push('--amend');
+		}
 		args.push('-m');
 		args.push(message);
 		return this.runGitCommand(args, repo);
@@ -1555,7 +1574,30 @@ export class DataSource extends Disposable {
 			for (let i = 0; i < lines.length - 1; i++) {
 				let line = lines[i].split(GIT_LOG_SEPARATOR);
 				if (line.length !== 6) break;
-				commits.push({ hash: line[0], parents: line[1] !== '' ? line[1].split(' ') : [], author: line[2], email: line[3], date: parseInt(line[4]), message: line[5] });
+				commits.push({ hash: line[0], parents: line[1] !== '' ? line[1].split(' ') : [], author: line[2], email: line[3], date: parseInt(line[4]), message: line[5], local: 0 });
+			}
+			return commits;
+		});
+	}
+
+	/**
+	 * Get the raw commits in a repository.
+	 * @param repo The path of the repository.
+	 * @param num The maximum number of commits to return.
+	 * @param order The order for commits to be returned.
+	 * @returns An array of commits.
+	 */
+	private getLogLocal(repo: string, num: number, order: CommitOrdering) {
+		const args = ['-c', 'log.showSignature=false', 'log', '--branches', '--max-count=' + num, '--format=' + this.gitFormatLog, '--' + order + '-order', '--not', '--remotes'];
+		args.push('--');
+
+		return this.spawnGit(args, repo, (stdout) => {
+			let lines = stdout.split(EOL_REGEX);
+			let commits: GitCommitRecord[] = [];
+			for (let i = 0; i < lines.length - 1; i++) {
+				let line = lines[i].split(GIT_LOG_SEPARATOR);
+				if (line.length !== 6) break;
+				commits.push({ hash: line[0], parents: line[1] !== '' ? line[1].split(' ') : [], author: line[2], email: line[3], date: parseInt(line[4]), message: line[5], local: i === 0 ? 2 : 1 });
 			}
 			return commits;
 		});
@@ -1935,6 +1977,7 @@ interface GitCommitRecord {
 	email: string;
 	date: number;
 	message: string;
+	local: number; // 0 => pushed, 1 => earlier commited, 2 => latest commited
 }
 
 interface GitCommitData {
