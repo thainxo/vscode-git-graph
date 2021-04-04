@@ -571,9 +571,18 @@ svg.fileCheckedIcon{
 	position:absolute;
 	top:2.5px;
 	height:13px !important;
-	fill:var(--vscode-textLink-activeForeground);
-	fill-opacity:0.6;
+	fill:var(--vscode-gitDecoration-addedResourceForeground);
+	fill-opacity:1.0;
 }
+
+.gitModifyingCommit{
+	color: var(--vscode-gitDecoration-modifiedResourceForeground);
+}
+
+.gitDoneCommit{
+	color: var(--vscode-gitDecoration-addedResourceForeground);
+}
+
 
 .fileTreeFileAction.copyGitFile svg{
 	top:3px;

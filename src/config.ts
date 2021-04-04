@@ -86,7 +86,7 @@ class Config {
 			remoteBranch: { checkout: true, delete: true, fetch: true, merge: true, pull: true, createPullRequest: true, createArchive: true, selectInBranchesDropdown: true, unselectInBranchesDropdown: true, copyName: true },
 			stash: { apply: true, createBranch: true, pop: true, drop: true, copyName: true, copyHash: true },
 			tag: { viewDetails: true, delete: true, push: true, createArchive: true, copyName: true },
-			uncommittedChanges: { stash: true, reset: true, clean: true, openSourceControlView: true }
+			uncommittedChanges: { stash: true, reset: true, clean: true, openSourceControlView: true, amend: false, commit: true }
 		};
 		mergeConfigObjects(config, userConfig);
 		return config;

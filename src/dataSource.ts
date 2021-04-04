@@ -1202,6 +1202,31 @@ export class DataSource extends Disposable {
 	/**
 	 * Push the uncommitted changes to a stash.
 	 * @param repo The path of the repository.
+	 * @param remoteInfo The message of the stash.
+	 * @param isRefs true => push to refs/for/<BRANCH>, false => normal push.
+	 * @returns The ErrorInfo from the executed command.
+	 */
+	 public pushRefs(repo: string, remoteInfo: string, isRefs: boolean): Promise<ErrorInfo> {
+		let args = ['push'];
+		let request = JSON.parse(remoteInfo);
+		let branchName = request.name;
+		if (request.remote !== null) {
+			args.push(request.remote);
+			branchName = branchName.substring(request.remote.length + 1);
+		}
+		
+		if (isRefs) {
+			args.push('HEAD:refs/for/' + branchName);
+		} else {
+			args.push(branchName);
+		}
+
+		return this.runGitCommand(args, repo);
+	}
+
+	/**
+	 * Push the uncommitted changes to a stash.
+	 * @param repo The path of the repository.
 	 * @param message The message of the stash.
 	 * @param includeUntracked Is `--include-untracked` enabled.
 	 * @returns The ErrorInfo from the executed command.

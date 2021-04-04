@@ -824,7 +824,7 @@ class GitGraphView {
 
 		for (let i = 0; i < this.commits.length; i++) {
 			let commit = this.commits[i];
-			let message = '<span class="text">' + textFormatter.format(commit.message) + '</span>';
+			let message = '<span class="text' + (commit.local === 0 ? '' : commit.local === 1 ? ' gitDoneCommit' : ' gitModifyingCommit') + '" >' + textFormatter.format(commit.message) + '</span>';
 			let date = formatShortDate(commit.date);
 			let branchLabels = getBranchLabels(commit.heads, commit.remotes);
 			let refBranches = '', refTags = '', j, k, refName, remoteName, refActive, refHtml, branchCheckedOutAtCommit: string | null = null;
@@ -1452,16 +1452,85 @@ class GitGraphView {
 
 	private getUncommittedChangesContextMenuActions(target: DialogTarget & CommitTarget): ContextMenuActions {
 		let visibility = this.config.contextMenuActionsVisibility.uncommittedChanges;
+		let amend = false;
+		let message = '';
+		let commitHash: Array<string> = [];
+		let remoteBranch: Array<DialogSelectInputOption> = [];
+
+		for (let i = 0; i < this.commits.length; i++) {
+			let commit = this.commits[i];
+			if (commit.local === 2) {
+				amend = true;
+				message = commit.message;
+				for (let j = 0; j < commit.parents.length; j++) {
+					commitHash.push(commit.parents[j]);
+				}
+				break;
+			}
+		}
+		for (let i = 0; i < this.commits.length; i++) {
+			let commit = this.commits[i];
+			if (commitHash.length !== 0) {
+				let foundIndex = commitHash.indexOf(commit.hash);
+				if (foundIndex >= 0) {
+					if (commit.remotes.length > 0) {
+						for (let j = 0; j < commit.remotes.length; j++) {
+							remoteBranch.push({
+								name: commit.remotes[j].name,
+								value: JSON.stringify(commit.remotes[j])
+							});
+						}
+					} else {
+						for (let j = 0; j < commit.parents.length; j++) {
+							commitHash.push(commit.parents[j]);
+						}
+					}
+					commitHash.splice(foundIndex, 1);
+				}
+				
+			} else {
+				break;
+			}
+		}
+
 		return [[
 			{
+				title: 'Commit amend staged files' + ELLIPSIS,
+				visible: amend,
+				onClick: () => {
+					dialog.disableListenKeyEvent('Enter');
+					dialog.showForm('Are you sure you want to commit the <b>staged files</b>?', [
+						{ type: DialogInputType.TextArea, name: 'Message', default: message }
+					], 'Yes, admen', (values) => {
+						runAction({ command: 'commitStagedFiles', repo: this.currentRepo, message: <string>values[0], amend: true }, 'Committing amend staged files');
+					}, target);
+				}
+			},
+			{
 				title: 'Commit staged files' + ELLIPSIS,
-				visible: visibility.stash,
+				visible: visibility.commit,
 				onClick: () => {
 					dialog.disableListenKeyEvent('Enter');
 					dialog.showForm('Are you sure you want to commit the <b>staged files</b>?', [
 						{ type: DialogInputType.TextArea, name: 'Message', default: '' }
 					], 'Yes, commit', (values) => {
-						runAction({ command: 'commitStagedFiles', repo: this.currentRepo, message: <string>values[0] }, 'Committing staged files');
+						runAction({ command: 'commitStagedFiles', repo: this.currentRepo, message: <string>values[0], amend: false }, 'Committing staged files');
+					}, target);
+				}
+			}
+		],
+		[
+			{
+				title: 'Push' + ELLIPSIS,
+				visible: amend,
+				onClick: () => {
+					dialog.disableListenKeyEvent('Enter');
+					dialog.showForm('Are you sure you want to push the <b>' + commitHash + '</b>?', [
+						{ type: DialogInputType.Select, name: 'Type', default: 'annotated', options: remoteBranch },
+						{ type: DialogInputType.Checkbox, name: 'Gerrit: refs/for', value: true }						
+					], 'Yes, push', (values) => {
+					 	let branchName = JSON.parse(<string>values[0]).name;
+						runAction({ command: 'pushRefs', repo: this.currentRepo, remoteInfo: <string>values[0], isRefs: <boolean>values[1] }, 'Push to <b>' + branchName + '</b>');
 					}, target);
 				}
 			}
@@ -3211,6 +3280,9 @@ window.addEventListener('load', () => {
 				break;
 			case 'pushBranch':
 				refreshAndDisplayErrors(msg.errors, 'Unable to Push Branch', msg.willUpdateBranchConfig);
+				break;
+			case 'pushRefs':
+				refreshOrDisplayError(msg.error, 'Unable to Push Refs');
 				break;
 			case 'pushStash':
 				refreshOrDisplayError(msg.error, 'Unable to Stash Uncommitted Changes');

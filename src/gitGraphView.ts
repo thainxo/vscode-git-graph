@@ -251,7 +251,7 @@ export class GitGraphView extends Disposable {
 			case 'commitStagedFiles':
 				this.sendMessage({
 					command: 'commitStagedFiles',
-					error: await this.dataSource.commitStagedFiles(msg.repo, msg.message)
+					error: await this.dataSource.commitStagedFiles(msg.repo, msg.message, msg.amend)
 				});
 				break;
 			case 'compareCommits':
@@ -508,6 +508,12 @@ export class GitGraphView extends Disposable {
 					command: 'pushBranch',
 					willUpdateBranchConfig: msg.willUpdateBranchConfig,
 					errors: await this.dataSource.pushBranchToMultipleRemotes(msg.repo, msg.branchName, msg.remotes, msg.setUpstream, msg.mode)
+				});
+				break;
+			case 'pushRefs':
+				this.sendMessage({
+					command: 'pushRefs',
+					error: await this.dataSource.pushRefs(msg.repo, msg.remoteInfo, msg.isRefs)
 				});
 				break;
 			case 'pushStash':

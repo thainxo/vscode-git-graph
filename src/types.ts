@@ -7,6 +7,7 @@ export interface GitCommit {
 	readonly email: string;
 	readonly date: number;
 	readonly message: string;
+	readonly local: number;
 	readonly heads: ReadonlyArray<string>;
 	readonly tags: ReadonlyArray<GitCommitTag>;
 	readonly remotes: ReadonlyArray<GitCommitRemote>;
@@ -390,6 +391,8 @@ export interface ContextMenuActionsVisibility {
 		readonly reset: boolean;
 		readonly clean: boolean;
 		readonly openSourceControlView: boolean;
+		readonly commit: boolean;
+		amend: boolean;
 	};
 }
 
@@ -665,6 +668,7 @@ export interface ResponseCommitDetails extends ResponseWithErrorInfo {
 export interface RequestCommitStagedFiles extends RepoRequest {
 	readonly command: 'commitStagedFiles';
 	readonly message: string;
+	readonly amend: boolean;
 }
 export interface ResponseCommitStagedFiles extends ResponseWithErrorInfo {
 	readonly command: 'commitStagedFiles';
@@ -1034,6 +1038,16 @@ export interface ResponsePushBranch extends ResponseWithMultiErrorInfo {
 	readonly willUpdateBranchConfig: boolean;
 }
 
+export interface RequestPushRefs extends RepoRequest {
+	readonly command: 'pushRefs';
+	readonly remoteInfo: string;
+	readonly isRefs: boolean;
+}
+
+export interface ResponsePushRefs extends ResponseWithErrorInfo {
+	readonly command: 'pushRefs';
+}
+
 export interface RequestPushStash extends RepoRequest {
 	readonly command: 'pushStash';
 	readonly message: string;
@@ -1244,6 +1258,7 @@ export type RequestMessage =
 	| RequestPruneRemote
 	| RequestPullBranch
 	| RequestPushBranch
+	| RequestPushRefs
 	| RequestPushStash
 	| RequestPushTag
 	| RequestRebase
@@ -1306,6 +1321,7 @@ export type ResponseMessage =
 	| ResponsePruneRemote
 	| ResponsePullBranch
 	| ResponsePushBranch
+	| ResponsePushRefs
 	| ResponsePushStash
 	| ResponsePushTag
 	| ResponseRebase
