@@ -19,6 +19,7 @@ export class RepositoryItem extends vscode.TreeItem {
 		this.iconPath = iconPath;
 		this.description = this.repository;
 		this.tooltip = this.repository;
+
 		this.command = {
 			command: 'git-graph.view',
 			arguments: [ { rootUri: vscode.Uri.file(repository) } ],

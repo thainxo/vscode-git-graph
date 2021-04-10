@@ -2,10 +2,10 @@
 	"name": "git-graph",
 	"displayName": "Git Graph",
 	"version": "1.29.0",
-	"publisher": "mhutchie",
+	"publisher": "thai",
 	"author": {
-		"name": "Michael Hutchison",
-		"email": "mhutchie@16right.com"
+		"name": "Thai Nguyen Xuan",
+		"email": "nxthai@outlook.com"
 	},
 	"description": "View a Git Graph of your repository, and perform Git actions from the graph.",
 	"keywords": [
@@ -30,7 +30,7 @@
 	"license": "SEE LICENSE IN 'LICENSE'",
 	"icon": "resources/icon.png",
 	"engines": {
-		"vscode": "^1.38.0"
+		"vscode": "^1.52.0"
 	},
 	"extensionKind": [
 		"workspace"
@@ -80,7 +80,8 @@
 				"category": "Git Graph",
 				"command": "git-graph.removeGitRepository",
 				"title": "Remove Git Repository...",
-				"icon": "$(diff-review-remove)"
+				"icon": "$(diff-review-remove)",
+				"enablement": "0 == 0"
 			},
 			{
 				"category": "Git Graph",
@@ -1449,7 +1450,7 @@
 			"view/title": [
 				{
 					"command": "git-graph.addGitRepository",
-					"when": "view == id-repositories",
+					"when": "view == repositoriesViewId",
 					"group": "navigation@1"
 				}
 			],
@@ -1457,63 +1458,73 @@
 				{
 					"command": "git-graph.workspace.openInTerminal",
 					"group": "1_terminal@1",
-					"when": "view == id-working-repository"
+					"when": "view == workingRepoViewId"
 				},
 				{
 					"command": "git-graph.workspace.historyFile",
 					"group": "2_repository@1",
-					"when": "view == id-working-repository && viewItem == file"
+					"when": "view == workingRepoViewId && viewItem == file"
 				},
 				{
 					"command": "git-graph.workspace.diffPrevious",
 					"group": "2_repository@2",
-					"when": "view == id-working-repository && viewItem == file"
+					"when": "view == workingRepoViewId && viewItem == file"
 				},
 				{
 					"command": "git-graph.workspace.discardChanges",
 					"group": "2_repository@3",
-					"when": "view == id-working-repository && viewItem == file"
+					"when": "view == workingRepoViewId && viewItem == file"
 				},
 				{
 					"command": "git-graph.repository.openInTerminal",
 					"group": "1_terminal@1",
-					"when": "view == id-repositories"
+					"when": "view == repositoriesViewId"
 				},
 				{
 					"command": "git-graph.removeGitSpecificRepository",
 					"group": "2_repository@1",
-					"when": "view == id-repositories && viewItem == repository"
+					"when": "view == repositoriesViewId && viewItem == repository"
+				},
+				{
+					"command": "git-graph.removeGitRepository",
+					"group": "inline",
+					"when": "view == repositoriesViewId"
+				},
+				{
+					"command": "git-graph.removeGitRepository",
+					"group": "navigation",
+					"when": "view == repositoriesViewId"
 				}
 			]
 		},
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "id-git-graph-activity-bar",
+					"id": "git-graph_activitybar",
 					"title": "Git Graph Manager",
 					"icon": "resources/webview-icon.svg"
 				}
 			]
 		},
 		"views": {
-			"id-git-graph-activity-bar": [
+			"git-graph_activitybar": [
 				{
-					"id": "id-repositories",
+					"id": "repositoriesViewId",
 					"name": "Repositories"
 				},
 				{
-					"id": "id-working-repository",
+					"id": "workingRepoViewId",
 					"name": "Working Repository"
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
-				"view": "id-repositories",
+				"view": "repositoriesViewId",
 				"contents": "No repository found.\n[Add Git Repository...](command:git-graph.addGitRepository)"
 			},
 			{
-				"view": "id-working-repository",
+				"view": "workingRepoViewId",
 				"contents": "Please select repository to work."
 			}
 		]
@@ -1538,10 +1549,10 @@
 		"@types/mkdirp": "^1.0.1",
 		"@types/node": "8.10.62",
 		"@types/rimraf": "^3.0.0",
-		"@types/vscode": "1.38.0",
+		"@types/vscode": "^1.52.0",
 		"@typescript-eslint/eslint-plugin": "4.10.0",
 		"@typescript-eslint/parser": "4.10.0",
-		"eslint": "7.15.0",
+		"eslint": "7.16.0",
 		"jest": "26.6.3",
 		"ts-jest": "26.4.4",
 		"typescript": "4.0.2",
@@ -1552,10 +1563,10 @@
 		"@types/mkdirp": "^1.0.1",
 		"@types/node": "8.10.62",
 		"@types/rimraf": "^3.0.0",
-		"@types/vscode": "1.38.0",
+		"@types/vscode": "^1.52.0",
 		"@typescript-eslint/eslint-plugin": "4.10.0",
 		"@typescript-eslint/parser": "4.10.0",
-		"eslint": "7.15.0",
+		"eslint": "7.16.0",
 		"jest": "26.6.3",
 		"ts-jest": "26.4.4",
 		"typescript": "4.0.2",

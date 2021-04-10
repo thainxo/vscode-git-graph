@@ -318,6 +318,6 @@ export class WorkingRepositoryProvider implements vscode.TreeDataProvider<Workin
 	}
 
 	public refresh(): void {
-		this._onDidChangeTreeData.fire();
+		this._onDidChangeTreeData.fire(undefined);
 	}
 }

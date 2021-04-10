@@ -18,7 +18,7 @@ export class RepositoryTreeView extends Disposable {
 		super();
 
 		const treeViewProvider = new RepositoryProvider();
-		const treeView = vscode.window.createTreeView('id-repositories', {
+		const treeView = vscode.window.createTreeView('repositoriesViewId', {
 			treeDataProvider: treeViewProvider,
 			showCollapseAll: true
 		});

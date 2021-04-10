@@ -23,7 +23,7 @@ export class RepositoryProvider implements vscode.TreeDataProvider<RepositoryIte
 				if (b.label === null || typeof b.label === 'undefined') {
 					return 0;
 				} else {
-					return a.label.localeCompare(b.label, 'en', {
+					return a.label.toString().localeCompare(b.label.toString(), 'en', {
 						sensitivity: 'base'
 					});
 				}
