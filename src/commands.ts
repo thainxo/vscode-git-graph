@@ -16,6 +16,7 @@ import { Disposable } from './utils/disposable';
 import { Event } from './utils/event';
 import { dirname } from 'path';
 import { DiffDocProvider } from './viewProvider/diffDocProvider';
+import { GitExtension } from './git';
 
 /**
  * Manages the registration and execution of Git Graph Commands.
@@ -58,6 +59,7 @@ export class CommandManager extends Disposable {
 		this.registerCommand('git-graph.addGitRepository', () => this.addGitRepository());
 		this.registerCommand('git-graph.removeGitRepository', () => this.removeGitRepository());
 		this.registerCommand('git-graph.removeGitSpecificRepository', (arg) => this.removeGitSpecificRepository(arg));
+		this.registerCommand('git-graph.scm.openInSourceControl', (arg) => this.openRepositoryInSCM(arg));
 		this.registerCommand('git-graph.clearAvatarCache', () => this.clearAvatarCache());
 		this.registerCommand('git-graph.fetch', () => this.fetch());
 		this.registerCommand('git-graph.endAllWorkspaceCodeReviews', () => this.endAllWorkspaceCodeReviews());
@@ -183,6 +185,21 @@ export class CommandManager extends Disposable {
 				showInformationMessage('The repository "' + arg.label + '" was removed from Git Graph.');
 			} else {
 				showErrorMessage('The repository "' + arg.label + '" is not known to Git Graph.');
+			}
+		}
+	}
+
+	/**
+	 * The method run when the `git-graph.scm.openInSourceControl` command is invoked.
+	 */
+	private openRepositoryInSCM(arg: any) {
+		if (typeof arg === 'object' && arg.repository) {
+			const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
+			if (typeof gitExtension !== 'undefined') {
+				const gitExports = gitExtension.exports;
+				const git = gitExports.getAPI(1);
+				git.init(vscode.Uri.file(arg.repository));
+				this.logger.log(' arg.repository' + arg.repository + ' | ' + JSON.stringify(vscode.Uri.file(arg.repository)));
 			}
 		}
 	}

@@ -3029,7 +3029,7 @@ class GitGraphView {
 						onClick: () => triggerOpenFile(file, fileElem)
 					},
 					{
-						title: file.staged === true ? 'Unstage' : 'State',
+						title: file.staged === true ? 'Unstage' : 'Stage',
 						visible: isUncommitted,
 						onClick: () => triggerStageFile(file, fileElem)
 					}

@@ -14,6 +14,7 @@ import { WorkingRepositoryTreeView } from './side-bar/workingRepository';
 import { StatusBarItem } from './statusBarItem';
 import { GitExecutable, UNABLE_TO_FIND_GIT_MSG, findGit, getGitExecutableFromPaths, showErrorMessage, showInformationMessage } from './utils';
 import { EventEmitter } from './utils/event';
+import { GitGraphFileDecorationProvider } from './decoration/gitgraphFileDecorationProvider';
 
 /**
  * Activate Git Graph.
@@ -87,10 +88,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		gitExecutableEmitter,
 		repositoryTreeView,
 		workingRepositoryTreeView,
+		new GitGraphFileDecorationProvider(),
 		logger
 	);
 	logger.log('Started Git Graph - Ready to use!');
-
 	
 	extensionState.expireOldCodeReviews();
 	onStartUp(context).catch(() => { });

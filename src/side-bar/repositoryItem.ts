@@ -26,6 +26,7 @@ export class RepositoryItem extends vscode.TreeItem {
 			title: 'Open View Git Graph (git log)'
 		};
 		this.contextValue = 'repository';
+		this.resourceUri = vscode.Uri.parse('git-graph-repository://' + this.repository);
 	}
 
 	public getRepositoty() {
