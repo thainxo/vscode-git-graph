@@ -7,6 +7,7 @@ export interface GitCommit {
 	readonly email: string;
 	readonly date: number;
 	readonly message: string;
+	readonly rawMessage: string;
 	readonly local: number;
 	readonly heads: ReadonlyArray<string>;
 	readonly tags: ReadonlyArray<GitCommitTag>;

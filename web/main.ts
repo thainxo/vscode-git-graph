@@ -1461,7 +1461,7 @@ class GitGraphView {
 			let commit = this.commits[i];
 			if (commit.local === 2) {
 				amend = true;
-				message = commit.message;
+				message = commit.rawMessage;
 				for (let j = 0; j < commit.parents.length; j++) {
 					commitHash.push(commit.parents[j]);
 				}
@@ -1492,7 +1492,6 @@ class GitGraphView {
 				break;
 			}
 		}
-
 		return [[
 			{
 				title: 'Commit amend staged files' + ELLIPSIS,
@@ -2997,9 +2996,6 @@ class GitGraphView {
 			if (expandedCommit === null || expandedCommit.fileTree === null || e.target === null) return;
 
 			let sourceElem = <HTMLElement>(<Element>e.target).closest('.fileTreeFolder');
-			// alterFileTreeFolderOpen(expandedCommit.fileTree, decodeURIComponent(sourceElem.dataset.folderpath!), isOpen);
-			// eslint-disable-next-line no-console
-			console.log('fileTreeFolder' + sourceElem.dataset.folderpath);
 
 			const target: ContextMenuTarget & CommitTarget = {
 				type: TargetType.CommitDetailsView,
