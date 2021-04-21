@@ -567,11 +567,19 @@ svg.openFolderIcon, svg.closedFolderIcon, svg.fileIcon, .fileTreeFileAction svg,
 	fill-opacity:0.6;
 }
 
-svg.fileCheckedIcon{
+svg.fileStagedIcon{
 	position:absolute;
 	top:2.5px;
 	height:13px !important;
 	fill:var(--vscode-gitDecoration-addedResourceForeground);
+	fill-opacity:1.0;
+}
+
+svg.fileModifiedIcon{
+	position:absolute;
+	top:2.5px;
+	height:13px !important;
+	fill:var(--vscode-gitDecoration-modifiedResourceForeground);
 	fill-opacity:1.0;
 }
 

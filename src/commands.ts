@@ -59,7 +59,7 @@ export class CommandManager extends Disposable {
 		this.registerCommand('git-graph.addGitRepository', () => this.addGitRepository());
 		this.registerCommand('git-graph.removeGitRepository', () => this.removeGitRepository());
 		this.registerCommand('git-graph.removeGitSpecificRepository', (arg) => this.removeGitSpecificRepository(arg));
-		this.registerCommand('git-graph.scm.openInSourceControl', (arg) => this.openRepositoryInSCM(arg));
+		this.registerCommand('git-graph.scm.openInSourceControl', (arg) => this.openRepositoryInSCM(arg));		
 		this.registerCommand('git-graph.clearAvatarCache', () => this.clearAvatarCache());
 		this.registerCommand('git-graph.fetch', () => this.fetch());
 		this.registerCommand('git-graph.endAllWorkspaceCodeReviews', () => this.endAllWorkspaceCodeReviews());
@@ -70,6 +70,7 @@ export class CommandManager extends Disposable {
 		this.registerCommand('git-graph.repository.refresh', () => this.repositoryRefresh());
 		this.registerCommand('git-graph.repository.selectRepository', (arg) => this.repositorySelectRepository(arg));
 		this.registerCommand('git-graph.repository.openInTerminal', (resource) => this.repositoryOpenInTerminal(resource));
+		this.registerCommand('git-graph.repository.mustMerge', (arg) => this.markMustMerger(arg));
 
 		this.registerCommand('git-graph.workspace.changeRepository', (arg) => this.workspaceChangeRepository(arg));
 		this.registerCommand('git-graph.workspace.openFile', (resource) => this.openResource(resource));
@@ -203,7 +204,22 @@ export class CommandManager extends Disposable {
 			}
 		}
 	}
-
+	
+	/**
+	 * The method run when the `git-graph.repository.mustMerge` command is invoked.
+	 */
+	 private markMustMerger(arg: any) {
+		if (typeof arg === 'object' && arg.repository) {
+			const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
+			if (typeof gitExtension !== 'undefined') {
+				const gitExports = gitExtension.exports;
+				const git = gitExports.getAPI(1);
+				git.init(vscode.Uri.file(arg.repository));
+				this.logger.log(' arg.repository' + arg.repository + ' | ' + JSON.stringify(vscode.Uri.file(arg.repository)));
+			}
+		}
+	}
+	
 	/**
 	 * The method run when the `git-graph.clearAvatarCache` command is invoked.
 	 */

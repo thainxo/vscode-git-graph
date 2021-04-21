@@ -8,8 +8,11 @@ import {
 	Uri,
 	window
 } from 'vscode';
+import { DataSource } from '../dataSource';
+import { getPathFromUri } from '../utils';
 
 export class GitGraphFileDecorationProvider implements FileDecorationProvider, Disposable {
+	private dataSource: DataSource;
 
 	private readonly _onDidChange = new EventEmitter<undefined | Uri | Uri[]>();
 	get onDidChange(): Event<undefined | Uri | Uri[]> {
@@ -17,7 +20,8 @@ export class GitGraphFileDecorationProvider implements FileDecorationProvider, D
 	}
 
 	private readonly disposable: Disposable;
-	constructor() {
+	constructor(dataSource: DataSource) {
+		this.dataSource = dataSource;
 		this.disposable = Disposable.from(
 			window.registerFileDecorationProvider(this)
 		);
@@ -27,21 +31,25 @@ export class GitGraphFileDecorationProvider implements FileDecorationProvider, D
 		this.disposable.dispose();
 	}
 
-	public provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
+	public async provideFileDecoration(uri: Uri, token: CancellationToken): Promise<FileDecoration | undefined> {
 		if (uri.scheme !== 'git-graph-repository') return undefined;
-		return this.provideRepositoryFileDecoration(uri, token);
+		return await this.provideRepositoryFileDecoration(uri, token);
 	}
 
-	private provideRepositoryFileDecoration(uri: Uri, _token: CancellationToken): FileDecoration | undefined {
-		let count = this.getCountBadge(uri);
+	private async provideRepositoryFileDecoration(uri: Uri, _token: CancellationToken): Promise<FileDecoration | undefined> {
+		let count = await this.getCountBadge(uri);
 		return {
 			badge: '' + count,
 			tooltip: 'Renamed'
 		};
 	}
 
-	private getCountBadge(_uri: Uri): number {
+	private async getCountBadge(uri: Uri): Promise<number> {
 		let count: number = 0;
+		let data = await this.dataSource.getUncommittedDetails(getPathFromUri(uri));
+		if (data.commitDetails !== null) {
+			count = data.commitDetails?.fileChanges.length;
+		}
 		return count;
 	}
 }

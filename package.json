@@ -106,6 +106,12 @@
 			},
 			{
 				"category": "Git Graph",
+				"command": "git-graph.repository.mustMerge",
+				"title": "Mark this repository is need push to server",
+				"icon": "$(diff-review-add)"
+			},
+			{
+				"category": "Git Graph",
 				"command": "git-graph.workspace.openInTerminal",
 				"title": "Open in terminal"
 			},
@@ -1494,14 +1500,19 @@
 					"when": "view == repositoriesViewId"
 				},
 				{
+					"command": "git-graph.repository.mustMerge",
+					"group": "2_sourceControl@2",
+					"when": "view == repositoriesViewId && viewItem =~ /repository.mustMerge/"
+				},
+				{
 					"command": "git-graph.removeGitSpecificRepository",
 					"group": "3_repository@1",
-					"when": "view == repositoriesViewId && viewItem == repository"
+					"when": "view == repositoriesViewId && viewItem =~ /repository/"
 				},
 				{
 					"command": "git-graph.removeGitSpecificRepository",
 					"group": "inline",
-					"when": "view == repositoriesViewId && viewItem == repository"
+					"when": "view == repositoriesViewId && viewItem =~ /repository/"
 				}
 			]
 		},

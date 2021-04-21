@@ -47,7 +47,7 @@ export class RepositoryTreeView extends Disposable {
 		this.treeView.onDidChangeSelection((event) => {
 			if (event.selection.length > 0) {
 				const items: RepositoryItem[] = event.selection;
-				this.repository = items[0].getRepositoty();
+				this.repository = items[0].getRepositoty().repo;
 				vscode.commands.executeCommand('git-graph.workspace.changeRepository', { repo: this.repository } );
 			}
 		});

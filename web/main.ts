@@ -2932,9 +2932,9 @@ class GitGraphView {
 			sendMessage({ command: 'openFile', repo: this.currentRepo, filePath: file.newFilePath });
 		};
 
-		const triggerStageFile = (file: GG.GitFileChange, fileElem: HTMLElement) => {
+		const triggerStagePath = (file: GG.GitFileChange, fileElem: HTMLElement, stage: boolean) => {
 			this.cdvFileViewed(file.newFilePath, fileElem);
-			sendMessage({ command: 'stageFile', repo: this.currentRepo, filePath: file.newFilePath, stage: file.staged });
+			sendMessage({ command: 'stagePath', repo: this.currentRepo, filePath: file.newFilePath, stage: stage });
 		};
 
 		addListenerToClass('fileTreeFolder', 'click', (e) => {
@@ -2990,6 +2990,49 @@ class GitGraphView {
 			const fileElem = getFileElemOfEventTarget(e.target);
 			triggerOpenFile(getFileOfFileElem(expandedCommit.fileChanges, fileElem), fileElem);
 		});
+		
+		addListenerToClass('fileTreeFolder', 'contextmenu', (e: Event) => {
+			handledEvent(e);
+			const expandedCommit = this.expandedCommit;
+			if (expandedCommit === null || expandedCommit.fileTree === null || e.target === null) return;
+
+			let sourceElem = <HTMLElement>(<Element>e.target).closest('.fileTreeFolder');
+			// alterFileTreeFolderOpen(expandedCommit.fileTree, decodeURIComponent(sourceElem.dataset.folderpath!), isOpen);
+			// eslint-disable-next-line no-console
+			console.log('fileTreeFolder' + sourceElem.dataset.folderpath);
+
+			const target: ContextMenuTarget & CommitTarget = {
+				type: TargetType.CommitDetailsView,
+				hash: expandedCommit.commitHash,
+				index: this.commitLookup[expandedCommit.commitHash],
+				elem: sourceElem
+			};
+			let file: GG.GitFileChange = {
+				oldFilePath: '',
+				newFilePath: decodeURIComponent(sourceElem.dataset.folderpath!),
+				type: GG.GitFileStatus.Untracked,
+				additions: null,
+				deletions: null,
+				staged: 0
+			};
+
+			contextMenu.show([
+				[
+					{
+						title: 'Stage',
+						visible: true,
+						onClick: () => triggerStagePath(file, sourceElem, true)
+					},
+					{
+						title: 'Unstage',
+						visible: true,
+						onClick: () => triggerStagePath(file, sourceElem, false)
+					}
+				]
+			], false, target, <MouseEvent>e, this.isCdvDocked() ? document.body : this.viewElem, () => {
+				expandedCommit.contextMenuOpen.fileView = -1;
+			});
+		});
 
 		addListenerToClass('fileTreeFileRecord', 'contextmenu', (e: Event) => {
 			handledEvent(e);
@@ -3010,7 +3053,6 @@ class GitGraphView {
 				elem: fileElem
 			};
 			const diffPossible = file.type === GG.GitFileStatus.Untracked || (file.additions !== null && file.deletions !== null);
-
 			contextMenu.show([
 				[
 					{
@@ -3029,9 +3071,14 @@ class GitGraphView {
 						onClick: () => triggerOpenFile(file, fileElem)
 					},
 					{
-						title: file.staged === true ? 'Unstage' : 'Stage',
-						visible: isUncommitted,
-						onClick: () => triggerStageFile(file, fileElem)
+						title: 'Stage',
+						visible: isUncommitted && file.staged !== 1,
+						onClick: () => triggerStagePath(file, fileElem, true)
+					},
+					{
+						title: 'Unstage',
+						visible: isUncommitted && file.staged !== 0,
+						onClick: () => triggerStagePath(file, fileElem, false)
 					}
 				],
 				[
@@ -3319,8 +3366,8 @@ window.addEventListener('load', () => {
 			case 'setWorkspaceViewState':
 				finishOrDisplayError(msg.error, 'Unable to save the Workspace View State');
 				break;
-			case 'stageFile':
-				refreshOrDisplayError(msg.error, 'Unable to stage file');
+			case 'stagePath':
+				refreshOrDisplayError(msg.error, 'Unable to stage path');
 				break;
 			case 'startCodeReview':
 				if (msg.error === null) {
@@ -3475,7 +3522,8 @@ function generateFileTreeLeafHtml(name: string, leaf: FileTreeLeaf, gitFiles: Re
 		const textFile = fileTreeFile.additions !== null && fileTreeFile.deletions !== null;
 		const diffPossible = fileTreeFile.type === GG.GitFileStatus.Untracked || textFile;
 		const changeTypeMessage = GIT_FILE_CHANGE_TYPES[fileTreeFile.type] + (fileTreeFile.type === GG.GitFileStatus.Renamed ? ' (' + escapeHtml(fileTreeFile.oldFilePath) + ' → ' + escapeHtml(fileTreeFile.newFilePath) + ')' : '');
-		return '<li data-pathseg="' + encodedName + '"><span class="fileTreeFileRecord' + (leaf.index === fileContextMenuOpen ? ' ' + CLASS_CONTEXT_MENU_ACTIVE : '') + '" data-index="' + leaf.index + '"><span class="fileTreeFile' + (diffPossible ? ' gitDiffPossible' : '') + (leaf.reviewed ? '' : ' ' + CLASS_PENDING_REVIEW) + '" title="' + (diffPossible ? 'Click to View Diff' : 'Unable to View Diff' + (fileTreeFile.type !== GG.GitFileStatus.Deleted ? ' (this is a binary file)' : '')) + ' • ' + changeTypeMessage + '"><span class="fileTreeFileIcon" style="fill:#AB7C94;">' + (fileTreeFile.staged === true ? SVG_ICONS.fileChecked : SVG_ICONS.file) + '</span><span class="gitFileName ' + fileTreeFile.type + '">' + escapedName + '</span></span>' +
+		const stagesStatus = fileTreeFile.staged === 0 ? SVG_ICONS.file : fileTreeFile.staged === 1 ? SVG_ICONS.fileStaged : SVG_ICONS.fileModified;
+		return '<li data-pathseg="' + encodedName + '"><span class="fileTreeFileRecord' + (leaf.index === fileContextMenuOpen ? ' ' + CLASS_CONTEXT_MENU_ACTIVE : '') + '" data-index="' + leaf.index + '"><span class="fileTreeFile' + (diffPossible ? ' gitDiffPossible' : '') + (leaf.reviewed ? '' : ' ' + CLASS_PENDING_REVIEW) + '" title="' + (diffPossible ? 'Click to View Diff' : 'Unable to View Diff' + (fileTreeFile.type !== GG.GitFileStatus.Deleted ? ' (this is a binary file)' : '')) + ' • ' + changeTypeMessage + '"><span class="fileTreeFileIcon" style="fill:#AB7C94;">' + stagesStatus + '</span><span class="gitFileName ' + fileTreeFile.type + '">' + escapedName + '</span></span>' +
 			(initialState.config.enhancedAccessibility ? '<span class="fileTreeFileType" title="' + changeTypeMessage + '">' + fileTreeFile.type + '</span>' : '') +
 			(fileTreeFile.type !== GG.GitFileStatus.Added && fileTreeFile.type !== GG.GitFileStatus.Untracked && fileTreeFile.type !== GG.GitFileStatus.Deleted && textFile ? '<span class="fileTreeFileAddDel">(<span class="fileTreeFileAdd" title="' + fileTreeFile.additions + ' addition' + (fileTreeFile.additions !== 1 ? 's' : '') + '">+' + fileTreeFile.additions + '</span>|<span class="fileTreeFileDel" title="' + fileTreeFile.deletions + ' deletion' + (fileTreeFile.deletions !== 1 ? 's' : '') + '">-' + fileTreeFile.deletions + '</span>)</span>' : '') +
 			(fileTreeFile.newFilePath === lastViewedFile ? '<span id="cdvLastFileViewed" title="Last File Viewed">' + SVG_ICONS.eyeOpen + '</span>' : '') +

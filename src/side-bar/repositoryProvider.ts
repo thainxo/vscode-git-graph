@@ -16,7 +16,7 @@ export class RepositoryProvider implements vscode.TreeDataProvider<RepositoryIte
 		this.data.splice(0, this.data.length);
 		let repoPaths = Object.keys(event.repos);
 		for (let i = 0; i < repoPaths.length; i++) {
-			this.data.push(new RepositoryItem(repoPaths[i]));
+			this.data.push(new RepositoryItem(repoPaths[i], event.repos[repoPaths[i]]));
 		}
 		this.data.sort((a, b) => {
 			if (a.label !== null && typeof a.label !== 'undefined') {
@@ -37,7 +37,7 @@ export class RepositoryProvider implements vscode.TreeDataProvider<RepositoryIte
 	public getCurrentTreeItem(repository: string) {
 		let repositoryItem: RepositoryItem|null = null;
 		for (let i = 0; i < this.data.length; i++) {
-			if (this.data[i].getRepositoty() === repository) {
+			if (this.data[i].getRepositoty().repo === repository) {
 				repositoryItem = this.data[i];
 				break;
 			}

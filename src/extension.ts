@@ -88,7 +88,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		gitExecutableEmitter,
 		repositoryTreeView,
 		workingRepositoryTreeView,
-		new GitGraphFileDecorationProvider(),
+		new GitGraphFileDecorationProvider(dataSource),
 		logger
 	);
 	logger.log('Started Git Graph - Ready to use!');
