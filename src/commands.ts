@@ -59,7 +59,7 @@ export class CommandManager extends Disposable {
 		this.registerCommand('git-graph.addGitRepository', () => this.addGitRepository());
 		this.registerCommand('git-graph.removeGitRepository', () => this.removeGitRepository());
 		this.registerCommand('git-graph.removeGitSpecificRepository', (arg) => this.removeGitSpecificRepository(arg));
-		this.registerCommand('git-graph.scm.openInSourceControl', (arg) => this.openRepositoryInSCM(arg));		
+		this.registerCommand('git-graph.scm.addToSourceControl', (arg) => this.addToSourceControlSCM(arg));		
 		this.registerCommand('git-graph.clearAvatarCache', () => this.clearAvatarCache());
 		this.registerCommand('git-graph.fetch', () => this.fetch());
 		this.registerCommand('git-graph.endAllWorkspaceCodeReviews', () => this.endAllWorkspaceCodeReviews());
@@ -71,6 +71,7 @@ export class CommandManager extends Disposable {
 		this.registerCommand('git-graph.repository.selectRepository', (arg) => this.repositorySelectRepository(arg));
 		this.registerCommand('git-graph.repository.openInTerminal', (resource) => this.repositoryOpenInTerminal(resource));
 		this.registerCommand('git-graph.repository.mustMerge', (arg) => this.markMustMerger(arg));
+		this.registerCommand('git-graph.repository.noMustMerge', (arg) => this.markNoMustMerger(arg));
 
 		this.registerCommand('git-graph.workspace.changeRepository', (arg) => this.workspaceChangeRepository(arg));
 		this.registerCommand('git-graph.workspace.openFile', (resource) => this.openResource(resource));
@@ -191,9 +192,9 @@ export class CommandManager extends Disposable {
 	}
 
 	/**
-	 * The method run when the `git-graph.scm.openInSourceControl` command is invoked.
+	 * The method run when the `git-graph.scm.addToSourceControl` command is invoked.
 	 */
-	private openRepositoryInSCM(arg: any) {
+	private addToSourceControlSCM(arg: any) {
 		if (typeof arg === 'object' && arg.repository) {
 			const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
 			if (typeof gitExtension !== 'undefined') {
@@ -210,13 +211,20 @@ export class CommandManager extends Disposable {
 	 */
 	 private markMustMerger(arg: any) {
 		if (typeof arg === 'object' && arg.repository) {
-			const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
-			if (typeof gitExtension !== 'undefined') {
-				const gitExports = gitExtension.exports;
-				const git = gitExports.getAPI(1);
-				git.init(vscode.Uri.file(arg.repository));
-				this.logger.log(' arg.repository' + arg.repository + ' | ' + JSON.stringify(vscode.Uri.file(arg.repository)));
-			}
+			arg.state.mustBeMerge = 1;
+			this.repoManager.setRepoState(arg.repository, arg.state);
+			this.repoManager.refreshState();
+		}
+	}
+
+	/**
+	 * The method run when the `git-graph.repository.markNoMustMerger` command is invoked.
+	 */
+	 private markNoMustMerger(arg: any) {
+		if (typeof arg === 'object' && arg.repository) {
+			arg.state.mustBeMerge = 0;
+			this.repoManager.setRepoState(arg.repository, arg.state);
+			this.repoManager.refreshState();
 		}
 	}
 	

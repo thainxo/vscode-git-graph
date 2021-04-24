@@ -28,8 +28,8 @@ export class RepositoryItem extends vscode.TreeItem {
 			arguments: [ { rootUri: vscode.Uri.file(repository) } ],
 			title: 'Open View Git Graph (git log)'
 		};
-		this.contextValue = 'repository' + (true ? '.mustMerge' : '');
-		this.resourceUri = vscode.Uri.parse('git-graph-repository://' + this.repository);
+		this.contextValue = 'repository' + (state.mustBeMerge ? '.mustMerge' : '.noMustMerge');
+		this.resourceUri = vscode.Uri.parse('git-graph-repository://' + this.repository + '#' + this.state.mustBeMerge);
 	}
 
 	public getRepositoty(): {

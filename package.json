@@ -100,14 +100,20 @@
 			},
 			{
 				"category": "Git Graph",
-				"command": "git-graph.scm.openInSourceControl",
-				"title": "Open repository in source control",
+				"command": "git-graph.scm.addToSourceControl",
+				"title": "Add repository to Source Control",
 				"icon": "$(diff-review-add)"
 			},
 			{
 				"category": "Git Graph",
 				"command": "git-graph.repository.mustMerge",
-				"title": "Mark this repository is need push to server",
+				"title": "Mark must push to remote",
+				"icon": "$(diff-review-add)"
+			},
+			{
+				"category": "Git Graph",
+				"command": "git-graph.repository.noMustMerge",
+				"title": "Unmark must push to remote",
 				"icon": "$(diff-review-add)"
 			},
 			{
@@ -1495,14 +1501,19 @@
 					"when": "view == repositoriesViewId"
 				},
 				{
-					"command": "git-graph.scm.openInSourceControl",
+					"command": "git-graph.scm.addToSourceControl",
 					"group": "2_sourceControl@1",
 					"when": "view == repositoriesViewId"
 				},
 				{
-					"command": "git-graph.repository.mustMerge",
+					"command": "git-graph.repository.noMustMerge",
 					"group": "2_sourceControl@2",
 					"when": "view == repositoriesViewId && viewItem =~ /repository.mustMerge/"
+				},
+				{
+					"command": "git-graph.repository.mustMerge",
+					"group": "2_sourceControl@3",
+					"when": "view == repositoriesViewId && viewItem =~ /repository.noMustMerge/)"
 				},
 				{
 					"command": "git-graph.removeGitSpecificRepository",

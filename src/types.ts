@@ -210,7 +210,7 @@ export interface GitRepoState {
 	showRemoteBranchesV2: BooleanOverride;
 	showStashes: BooleanOverride;
 	showTags: BooleanOverride;
-	mustBeMerge: boolean;
+	mustBeMerge: number;
 }
 
 

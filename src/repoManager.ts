@@ -405,6 +405,10 @@ export class RepoManager extends Disposable {
 		return changes;
 	}
 
+	public refreshState() {
+		this.sendRepos();
+	}
+
 	/**
 	 * Search the specified directory for new repositories (and add them).
 	 * @param directory The path of the directory to search.

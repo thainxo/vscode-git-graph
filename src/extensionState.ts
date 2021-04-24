@@ -36,7 +36,7 @@ export const DEFAULT_REPO_STATE: GitRepoState = {
 	showRemoteBranchesV2: BooleanOverride.Default,
 	showStashes: BooleanOverride.Default,
 	showTags: BooleanOverride.Default,
-	mustBeMerge: false
+	mustBeMerge: 0
 };
 
 const DEFAULT_GIT_GRAPH_VIEW_GLOBAL_STATE: GitGraphViewGlobalState = {

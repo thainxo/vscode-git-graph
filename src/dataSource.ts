@@ -1613,7 +1613,7 @@ export class DataSource extends Disposable {
 	 * @param order The order for commits to be returned.
 	 * @returns An array of commits.
 	 */
-	private getLogLocal(repo: string, num: number, order: CommitOrdering) {
+	public getLogLocal(repo: string, num: number, order: CommitOrdering) {
 		const args = ['-c', 'log.showSignature=false', 'log', '--branches', '--max-count=' + num, '--format=' + this.gitFormatLog, '--' + order + '-order', '--not', '--remotes'];
 		args.push('--');
 
