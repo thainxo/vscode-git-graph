@@ -446,6 +446,25 @@ export class ExtensionState extends Disposable {
 			() => 'Visual Studio Code was unable to save the Git Graph Workspace State Memento.'
 		);
 	}
+
+	public async addToGitIgnore(repo: string, filePath: string): Promise<ErrorInfo> {
+		const ignoreFile = `${repo}/.gitignore`;
+		const textToAppend = filePath;
+		const document = await new Promise(c => fs.exists(ignoreFile, c))
+			? await vscode.workspace.openTextDocument(ignoreFile)
+			: await vscode.workspace.openTextDocument(vscode.Uri.file(ignoreFile).with({ scheme: 'untitled' }));
+		await vscode.window.showTextDocument(document);
+		const edit = new vscode.WorkspaceEdit();
+		const lastLine = document.lineAt(document.lineCount - 1);
+		const text = lastLine.isEmptyOrWhitespace ? `${textToAppend}\n` : `\n${textToAppend}\n`;
+
+		edit.insert(document.uri, lastLine.range.end, text);
+		await vscode.workspace.applyEdit(edit);
+		return await document.save().then(
+			() => null,
+			() => 'Visual Studio Code was unable to add path to .gitignore'
+		);
+	}
 }
 
 

@@ -1533,20 +1533,6 @@ class GitGraphView {
 					}, target);
 				}
 			}
-		],
-		[
-			{
-				title: 'Stash uncommitted changes' + ELLIPSIS,
-				visible: visibility.stash,
-				onClick: () => {
-					dialog.showForm('Are you sure you want to stash the <b>uncommitted changes</b>?', [
-						{ type: DialogInputType.Text, name: 'Message', default: '', placeholder: 'Optional' },
-						{ type: DialogInputType.Checkbox, name: 'Include Untracked', value: this.config.dialogDefaults.stashUncommittedChanges.includeUntracked, info: 'Include all untracked files in the stash, and then clean them from the working directory.' }
-					], 'Yes, stash', (values) => {
-						runAction({ command: 'pushStash', repo: this.currentRepo, message: <string>values[0], includeUntracked: <boolean>values[1] }, 'Stashing uncommitted changes');
-					}, target);
-				}
-			}
 		], [
 			{
 				title: 'Reset uncommitted changes' + ELLIPSIS,
@@ -1574,6 +1560,18 @@ class GitGraphView {
 				visible: visibility.openSourceControlView,
 				onClick: () => {
 					sendMessage({ command: 'viewScm' });
+				}
+			},
+			{
+				title: 'Stash uncommitted changes' + ELLIPSIS,
+				visible: visibility.stash,
+				onClick: () => {
+					dialog.showForm('Are you sure you want to stash the <b>uncommitted changes</b>?', [
+						{ type: DialogInputType.Text, name: 'Message', default: '', placeholder: 'Optional' },
+						{ type: DialogInputType.Checkbox, name: 'Include Untracked', value: this.config.dialogDefaults.stashUncommittedChanges.includeUntracked, info: 'Include all untracked files in the stash, and then clean them from the working directory.' }
+					], 'Yes, stash', (values) => {
+						runAction({ command: 'pushStash', repo: this.currentRepo, message: <string>values[0], includeUntracked: <boolean>values[1] }, 'Stashing uncommitted changes');
+					}, target);
 				}
 			}
 		]];
@@ -2931,8 +2929,18 @@ class GitGraphView {
 			sendMessage({ command: 'openFile', repo: this.currentRepo, filePath: file.newFilePath });
 		};
 
-		const triggerStagePath = (file: GG.GitFileChange, fileElem: HTMLElement, stage: boolean) => {
-			this.cdvFileViewed(file.newFilePath, fileElem);
+		const discardChanges = (file: GG.GitFileChange, path: HTMLElement) => {
+			this.cdvFileViewed(file.newFilePath, path);
+			sendMessage({ command: 'discardChanges', repo: this.currentRepo, filePath: file.newFilePath });
+		};
+
+		const addToGitIgnore = (file: GG.GitFileChange, path: HTMLElement) => {
+			this.cdvFileViewed(file.newFilePath, path);
+			sendMessage({ command: 'addToGitIgnore', repo: this.currentRepo, filePath: file.newFilePath });
+		};
+
+		const triggerStagePath = (file: GG.GitFileChange, path: HTMLElement, stage: boolean) => {
+			this.cdvFileViewed(file.newFilePath, path);
 			sendMessage({ command: 'stagePath', repo: this.currentRepo, filePath: file.newFilePath, stage: stage });
 		};
 
@@ -3015,6 +3023,11 @@ class GitGraphView {
 			contextMenu.show([
 				[
 					{
+						title: 'Discard changes',
+						visible: true,
+						onClick: () => discardChanges(file, sourceElem)
+					},
+					{
 						title: 'Stage',
 						visible: true,
 						onClick: () => triggerStagePath(file, sourceElem, true)
@@ -3023,6 +3036,11 @@ class GitGraphView {
 						title: 'Unstage',
 						visible: true,
 						onClick: () => triggerStagePath(file, sourceElem, false)
+					},
+					{
+						title: 'Add to .gitignore',
+						visible: true,
+						onClick: () => addToGitIgnore(file, sourceElem)
 					}
 				]
 			], false, target, <MouseEvent>e, this.isCdvDocked() ? document.body : this.viewElem, () => {
@@ -3065,6 +3083,12 @@ class GitGraphView {
 						title: 'Open File',
 						visible: file.type !== GG.GitFileStatus.Deleted,
 						onClick: () => triggerOpenFile(file, fileElem)
+					}
+				], [
+					{
+						title: 'Discard changes',
+						visible: true,
+						onClick: () => discardChanges(file, fileElem)
 					},
 					{
 						title: 'Stage',
@@ -3075,6 +3099,11 @@ class GitGraphView {
 						title: 'Unstage',
 						visible: isUncommitted && file.staged !== 0,
 						onClick: () => triggerStagePath(file, fileElem, false)
+					},
+					{
+						title: 'Add to .gitignore',
+						visible: true,
+						onClick: () => addToGitIgnore(file, fileElem)
 					}
 				],
 				[
@@ -3185,6 +3214,9 @@ window.addEventListener('load', () => {
 			case 'addTag':
 				refreshAndDisplayErrors(msg.errors, 'Unable to Add Tag');
 				break;
+			case 'addToGitIgnore':
+				refreshOrDisplayError(msg.error, 'Unable to Add to .gitignore');
+				break;
 			case 'applyStash':
 				refreshOrDisplayError(msg.error, 'Unable to Apply Stash');
 				break;
@@ -3255,6 +3287,9 @@ window.addEventListener('load', () => {
 				break;
 			case 'deleteUserDetails':
 				finishOrDisplayErrors(msg.errors, 'Unable to Remove Git User Details', () => gitGraph.requestLoadConfig(), true);
+				break;
+			case 'discardChanges':
+				refreshOrDisplayError(msg.error, 'Unable to discard Changes');
 				break;
 			case 'dropCommit':
 				refreshOrDisplayError(msg.error, 'Unable to Drop Commit');

@@ -186,6 +186,12 @@ export class GitGraphView extends Disposable {
 				}
 				this.sendMessage({ command: 'addTag', errors: errorInfos });
 				break;
+			case 'addToGitIgnore':
+				this.sendMessage({
+					command: 'addToGitIgnore',
+					error: await this.extensionState.addToGitIgnore(msg.repo, msg.filePath)
+				});
+				break;
 			case 'applyStash':
 				this.sendMessage({
 					command: 'applyStash',
@@ -343,6 +349,12 @@ export class GitGraphView extends Disposable {
 				this.sendMessage({
 					command: 'deleteUserDetails',
 					errors: errorInfos
+				});
+				break;
+			case 'discardChanges':
+				this.sendMessage({
+					command: 'discardChanges',
+					error: await this.dataSource.discardChanges(msg.repo, msg.filePath)
 				});
 				break;
 			case 'dropCommit':

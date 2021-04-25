@@ -581,6 +581,14 @@ export interface ResponseAddTag extends ResponseWithMultiErrorInfo {
 	readonly command: 'addTag';
 }
 
+export interface RequestAddToGitIgnore extends RepoRequest {
+	readonly command: 'addToGitIgnore';
+	readonly filePath: string;
+}
+export interface ResponseAddToGitIgnore extends ResponseWithErrorInfo {
+	readonly command: 'addToGitIgnore';
+}
+
 export interface RequestApplyStash extends RepoRequest {
 	readonly command: 'applyStash';
 	readonly selector: string;
@@ -791,6 +799,14 @@ export interface RequestDeleteUserDetails extends RepoRequest {
 }
 export interface ResponseDeleteUserDetails extends ResponseWithMultiErrorInfo {
 	readonly command: 'deleteUserDetails';
+}
+
+export interface RequestDiscardChanges extends RepoRequest {
+    readonly command: 'discardChanges';
+	readonly filePath: string;
+}
+export interface ResponseDiscardChanges extends ResponseWithErrorInfo {
+    readonly command: 'discardChanges';
 }
 
 export interface RequestDropCommit extends RepoRequest {
@@ -1217,6 +1233,7 @@ export interface ResponseViewScm extends ResponseWithErrorInfo {
 export type RequestMessage =
 	RequestAddRemote
 	| RequestAddTag
+	| RequestAddToGitIgnore
 	| RequestApplyStash
 	| RequestBranchFromStash
 	| RequestCheckoutBranch
@@ -1237,6 +1254,7 @@ export type RequestMessage =
 	| RequestDeleteRemoteBranch
 	| RequestDeleteTag
 	| RequestDeleteUserDetails
+	| RequestDiscardChanges
 	| RequestDropCommit
 	| RequestDropStash
 	| RequestEditRemote
@@ -1282,6 +1300,7 @@ export type RequestMessage =
 export type ResponseMessage =
 	ResponseAddRemote
 	| ResponseAddTag
+	| ResponseAddToGitIgnore
 	| ResponseApplyStash
 	| ResponseBranchFromStash
 	| ResponseCheckoutBranch
@@ -1301,6 +1320,7 @@ export type ResponseMessage =
 	| ResponseDeleteRemoteBranch
 	| ResponseDeleteTag
 	| ResponseDeleteUserDetails
+	| ResponseDiscardChanges
 	| ResponseDropCommit
 	| ResponseDropStash
 	| ResponseEditRemote
